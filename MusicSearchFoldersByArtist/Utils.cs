@@ -1,14 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
+﻿using System.Globalization;
 using System.Text;
-using System.Threading.Tasks;
 
-namespace MusicFindArtist
+
+namespace MusicManager
 {
     internal class Utils
     {
+        internal enum Collection
+        {
+            MP3,
+            FLAC
+        }
+
+        internal enum SearchType
+        {
+            CONSTany,   // name*
+            anyCONSTany // *name*
+
+        }
+
         internal enum TextCaseAction
         {
             None,

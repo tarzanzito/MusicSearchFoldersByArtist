@@ -33,7 +33,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>MusicFindArtist.Program</StartupObject>
+    <StartupObject>MusicManager.Program</StartupObject>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>Vexels-Office-File-search.ico</ApplicationIcon>
@@ -69,8 +69,6 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Custom-Icon-Design-Flatastic-8-File-explorer.ico" />
-    <Content Include="Custom-Icon-Design-Pretty-Office-5-File-explorer.ico" />
     <Content Include="Vexels-Office-File-search.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

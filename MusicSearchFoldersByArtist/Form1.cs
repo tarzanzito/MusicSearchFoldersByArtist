@@ -28,7 +28,7 @@ namespace MusicManager
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            this.Text = $"{this.Text} - Version: {System.Windows.Forms.Application.ProductVersion.ToString()}";
+            this.Text = $"{this.Text} - Version: {System.Windows.Forms.Application.ProductVersion}";
             comboBox1.SelectedIndex = 0;
         }
 

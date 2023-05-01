@@ -87,6 +87,20 @@ namespace MusicManager
                 this.comboBox1.SelectedIndex = 0;
         }
 
+        private void buttonProgArchives_Click(object sender, EventArgs e)
+        {
+            if (listBox1.SelectedItem == null)
+                listBox1.SelectedIndex = 0;
+
+            string folder = _folderList[listBox1.SelectedIndex];
+
+            string FolderName = Path.GetFileName(folder);
+            string cleanName = FolderName.Replace("{", "").Replace("}", "").Replace(" ", "%20").Trim();
+            string finalName = Utils.RemoveDiacritics(cleanName, Utils.TextCaseAction.ToUpper);
+
+            Process.Start("http://www.progarchives.com/google-search-results.asp?cx=artists&q=" + finalName);
+        }
+
         ///////////////////////////// 
 
         private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
@@ -228,7 +242,7 @@ namespace MusicManager
         }
 
         ////////////////////////////// 
-        ///
+
         private void ChangeFormStatus(bool enabled)
         {
             if (enabled)
@@ -239,8 +253,9 @@ namespace MusicManager
 
             textBoxArtist.Enabled = enabled;
             buttonSearch.Enabled = enabled;
+            buttonProgArchives.Enabled = enabled && (listBox1.Items.Count > 0);
             buttonCancel.Enabled = !enabled;
-            listBox1.Enabled = enabled;
+            listBox1.Enabled = enabled && (listBox1.Items.Count > 0); 
             comboBox1.Enabled = enabled;
             checkBoxSearchInAll.Enabled = enabled;
             progressBar1.Visible = !enabled;

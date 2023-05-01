@@ -40,6 +40,7 @@
             this.buttonCancel = new System.Windows.Forms.Button();
             this.progressBar1 = new System.Windows.Forms.ProgressBar();
             this.label2 = new System.Windows.Forms.Label();
+            this.buttonProgArchives = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // label1
@@ -159,6 +160,16 @@
             this.label2.TabIndex = 9;
             this.label2.Text = "Type";
             // 
+            // buttonProgArchives
+            // 
+            this.buttonProgArchives.Location = new System.Drawing.Point(486, 93);
+            this.buttonProgArchives.Name = "buttonProgArchives";
+            this.buttonProgArchives.Size = new System.Drawing.Size(56, 29);
+            this.buttonProgArchives.TabIndex = 10;
+            this.buttonProgArchives.Text = "Site";
+            this.buttonProgArchives.UseVisualStyleBackColor = true;
+            this.buttonProgArchives.Click += new System.EventHandler(this.buttonProgArchives_Click);
+            // 
             // Form1
             // 
             this.AcceptButton = this.buttonSearch;
@@ -166,6 +177,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.buttonClose;
             this.ClientSize = new System.Drawing.Size(554, 236);
+            this.Controls.Add(this.buttonProgArchives);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.progressBar1);
             this.Controls.Add(this.buttonCancel);
@@ -201,6 +213,7 @@
         private System.Windows.Forms.Button buttonCancel;
         private System.Windows.Forms.ProgressBar progressBar1;
         private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Button buttonProgArchives;
     }
 }
 

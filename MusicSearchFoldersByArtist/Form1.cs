@@ -14,6 +14,8 @@ namespace MusicManager
 {
     public partial class Form1 : Form
     {
+        #region Fields
+
         private readonly List<string> _folderList = new List<string>();
         private const string _root1 = @"\\NAS-QNAP\music\_COLLECTION";
         private const string _root2 = @"\\NAS-QNAP\music_lossless\_COLLECTION";
@@ -21,10 +23,18 @@ namespace MusicManager
         private bool _isFirstItem;
         private bool _isMarquee;
 
+        #endregion
+
+        #region Constructors
+                
         public Form1()
         {
             InitializeComponent();
         }
+
+        #endregion
+
+        #region UI Events
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -43,7 +53,9 @@ namespace MusicManager
                 if (backgroundWorker1.IsBusy == true)
                     return;
 
-                //set arguments to worker
+                // set arguments to worker
+                // Não devem ser usados directamente os conteudos que estão nos componentes dentro do RunWorkerAsync
+                // deve receber object class com toda a info necessaria como arguments.
                 WorkerArguments arguments = new WorkerArguments();
                 arguments.Artist = textBoxArtist.Text;
                 arguments.SearchType = (Utils.SearchType)comboBox1.SelectedIndex;
@@ -65,7 +77,7 @@ namespace MusicManager
 
         private void listBox1_DoubleClick(object sender, EventArgs e)
         {
-            string folder = _folderList[listBox1.SelectedIndex];
+            string folder = $"\"{_folderList[listBox1.SelectedIndex]}\"";
 
             Process.Start("explorer.exe", folder);
         }
@@ -101,8 +113,12 @@ namespace MusicManager
             Process.Start("http://www.progarchives.com/google-search-results.asp?cx=artists&q=" + finalName);
         }
 
-        ///////////////////////////// 
+        #endregion
 
+        #region BackgroundWorker events
+
+        // e.Argument - deve receber object class com toda a info necessaria.
+        // Não devem ser usados directamente os conteudos que estão nos componentes
         private void backgroundWorker1_DoWork(object sender, DoWorkEventArgs e)
         {
             try
@@ -163,6 +179,9 @@ namespace MusicManager
                 return;
             }
 
+            // Não devem ser usados directamente os conteudos que estão nos componentes ou em fields da classe
+            // deve receber object class com toda a info necessaria no "e.UserState".
+
             if (e.UserState != null)
             {
                 WorkerProcessState WorkerProcessState = e.UserState as WorkerProcessState;
@@ -175,6 +194,10 @@ namespace MusicManager
         {
             ChangeFormStatus(true);
         }
+
+        #endregion
+
+        #region BackgroundWorker Methods
 
         private void GetDirectoriesAll(string rootDirectoryPath, string baseArtist, Utils.Collection collection, Utils.SearchType searchType, DoWorkEventArgs e)
         {
@@ -230,6 +253,8 @@ namespace MusicManager
 
                     if (addItem)
                     {
+                        // Não devem ser usados directamente os conteudos que estão nos componentes ou em fields da classe
+                        // ReportProgress deve receber object class com toda a info necessaria no seguendo parametro.
                         workerProcessState = new WorkerProcessState();
                         workerProcessState.Collection = collection;
                         workerProcessState.Artist = shortName;
@@ -241,7 +266,9 @@ namespace MusicManager
             }
         }
 
-        ////////////////////////////// 
+        #endregion
+
+        #region Private Methods
 
         private void ChangeFormStatus(bool enabled)
         {
@@ -270,6 +297,8 @@ namespace MusicManager
 
             System.Windows.Forms.Application.DoEvents();
         }
+
+        #endregion
     }
 }
 

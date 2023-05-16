@@ -6,6 +6,7 @@ using System.IO;
 using System.Windows.Forms;
 
 
+
 namespace MusicManager
 {
     public partial class Form1 : Form
@@ -18,13 +19,16 @@ namespace MusicManager
         private int _totalFolders;
         private bool _isFirstItem;
         private bool _isMarquee;
+        private readonly string _folderRoot;
 
         #endregion
 
         #region Constructors
-                
-        public Form1()
+
+        public Form1(string folderRoot)
         {
+            _folderRoot = folderRoot;   
+
             InitializeComponent();
         }
 
@@ -35,48 +39,49 @@ namespace MusicManager
         private void Form1_Load(object sender, EventArgs e)
         {
             this.Text = $"{this.Text} - Version: {System.Windows.Forms.Application.ProductVersion}";
-            comboBoxSearchType.SelectedIndex = 0;
-            SearchTypeMessage(comboBoxSearchType.SelectedIndex);
+            this.textBoxFolder.Text = _folderRoot;
+
         }
 
-        private void buttonSearch_Click(object sender, EventArgs e)
-        {
-            textBoxArtist.Text = textBoxArtist.Text.Trim();
+        //private void buttonSearch_Click(object sender, EventArgs e)
+        //{
+        //    textBoxArtist.Text = textBoxArtist.Text.Trim();
 
-            ChangeFormStatus(false);
+        //    ChangeFormStatus(false);
 
-            try
-            {
-                if (backgroundWorker1.IsBusy == true)
-                    return;
+        //    try
+        //    {
+        //        if (backgroundWorker1.IsBusy == true)
+        //            return;
 
-                // set arguments to worker
-                // Não devem ser usados directamente os conteudos que estão nos componentes UI dentro do RunWorkerAsync
-                // deve receber object class com toda a info necessaria como arguments.
-                WorkerArguments arguments = new WorkerArguments();
-                arguments.Artist = textBoxArtist.Text;
-                arguments.SearchType = (Utils.SearchType)comboBoxSearchType.SelectedIndex;
+        //        // set arguments to worker
+        //        // Não devem ser usados directamente os conteudos que estão nos componentes dentro do RunWorkerAsync
+        //        // deve receber object class com toda a info necessaria como arguments.
+        //        WorkerArguments arguments = new WorkerArguments();
+        //        arguments.Artist = textBoxArtist.Text;
+        //        arguments.SearchType = (Utils.SearchType)comboBoxSearchType.SelectedIndex;
+        //        //arguments.SearchInAllLetters = this.checkBoxSearchInAll.Checked;
 
-                backgroundWorker1.RunWorkerAsync(arguments);
-            }
-            catch (Exception ex)
-            {
-                listBox1.Items.Add(ex.Message);
-                ChangeFormStatus(true);
-            }
-        }
+        //        backgroundWorker1.RunWorkerAsync(arguments);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        listBox1.Items.Add(ex.Message);
+        //        ChangeFormStatus(true);
+        //    }
+        //}
 
         private void buttonClose_Click(object sender, EventArgs e)
         {
             Close();
         }
 
-        private void listBox1_DoubleClick(object sender, EventArgs e)
-        {
-            string folder = $"\"{_folderList[listBox1.SelectedIndex]}\"";
+        //private void listBox1_DoubleClick(object sender, EventArgs e)
+        //{
+        //    string folder = $"\"{_folderList[listBox1.SelectedIndex]}\"";
 
-            Process.Start("explorer.exe", folder);
-        }
+        //    Process.Start("explorer.exe", folder);
+        //}
 
         private void buttonCancel_Click(object sender, EventArgs e)
         {
@@ -87,29 +92,7 @@ namespace MusicManager
                 backgroundWorker1.CancelAsync();
         }
 
-        private void buttonProgArchives_Click(object sender, EventArgs e)
-        {
-            if (listBox1.SelectedItem == null)
-                listBox1.SelectedIndex = 0;
 
-            string folder = _folderList[listBox1.SelectedIndex];
-
-            string FolderName = Path.GetFileName(folder);
-            string cleanName = FolderName.Replace("{", "").Replace("}", "").Replace(" ", "%20").Trim();
-            string finalName = Utils.RemoveDiacritics(cleanName, Utils.TextCaseAction.ToUpper);
-
-            Process.Start("http://www.progarchives.com/google-search-results.asp?cx=artists&q=" + finalName);
-        }
-
-        private void textBoxArtist_TextChanged(object sender, EventArgs e)
-        {
-            SearchTypeMessage(comboBoxSearchType.SelectedIndex);
-        }
-
-        private void comboBoxSearchType_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            SearchTypeMessage(comboBoxSearchType.SelectedIndex);
-        }
 
         #endregion
 
@@ -143,7 +126,7 @@ namespace MusicManager
                     GetDirectories(rootFolder, baseArtist, Utils.Collection.FLAC, arguments.SearchType, e);
                 }
                 else
-                {
+                { 
                     //*name*
                     string rootFolder = $@"{_root1}\";
                     GetDirectoriesAll(rootFolder, baseArtist, Utils.Collection.MP3, arguments.SearchType, e);
@@ -154,7 +137,7 @@ namespace MusicManager
             }
             catch (Exception ex)
             {
-                listBox1.Items.Add(ex.Message); //review throw in thread
+              //  listBox1.Items.Add(ex.Message); //review throw in thread
                 ChangeFormStatus(true);
             }
         }
@@ -184,7 +167,7 @@ namespace MusicManager
             if (e.UserState != null)
             {
                 WorkerProcessState WorkerProcessState = e.UserState as WorkerProcessState;
-                listBox1.Items.Add(WorkerProcessState.Collection.ToString() + " : " + WorkerProcessState.Artist);
+               // listBox1.Items.Add(WorkerProcessState.Collection.ToString() + " : " + WorkerProcessState.Artist);
                 _folderList.Add(WorkerProcessState.Folder);
             }
         }
@@ -200,25 +183,16 @@ namespace MusicManager
 
         private void GetDirectoriesAll(string rootDirectoryPath, string baseArtist, Utils.Collection collection, Utils.SearchType searchType, DoWorkEventArgs e)
         {
-            if (e.Cancel == true)
-                return;
-
             string[] folderArray = Directory.GetDirectories(rootDirectoryPath);
 
             foreach (string folderName in folderArray)
             {
                 GetDirectories(folderName, baseArtist, collection, searchType, e);
-                // if (backgroundWorker1.CancellationPending == true)
-                if (e.Cancel == true)
-                    break;
             }
         }
 
         private void GetDirectories(string rootDirectoryPath, string baseArtist, Utils.Collection collection, Utils.SearchType searchType, DoWorkEventArgs e)
         {
-            if (e.Cancel == true)
-                return;
-
             if (!Directory.Exists(rootDirectoryPath))
                 return;
 
@@ -236,9 +210,6 @@ namespace MusicManager
             for (int item = 0; item < _totalFolders; item++)
             {
                 workerProcessState = null;
-
-               // if (e.Cancel == true)
-               //     break;
 
                 if (backgroundWorker1.CancellationPending == true)
                 {
@@ -291,15 +262,13 @@ namespace MusicManager
 
             textBoxArtist.Enabled = enabled;
             buttonSearch.Enabled = enabled;
-            buttonProgArchives.Enabled = enabled && (listBox1.Items.Count > 0);
             buttonCancel.Enabled = !enabled;
-            listBox1.Enabled = enabled && (listBox1.Items.Count > 0); 
-            comboBoxSearchType.Enabled = enabled;
+
             progressBar1.Visible = !enabled;
 
             if (!enabled)
             {
-                listBox1.Items.Clear();
+                //listBox1.Items.Clear();
                 _folderList.Clear();
                 progressBar1.Style = ProgressBarStyle.Blocks;
             }
@@ -310,23 +279,149 @@ namespace MusicManager
 
         #endregion
 
-        private void SearchTypeMessage(int val)
+        private void button1_Click(object sender, EventArgs e)
         {
-            if (val == 0)
-                this.labelSearchType.Text = "Search only in First Letter Folders. (Low-cost)";
-            else
-                this.labelSearchType.Text = "Search in ALL Collection folders.  (High-cost)";
+            //if (listBox1.SelectedItem == null)
+            //    listBox1.SelectedIndex = 0;
+
+           // string folder = _folderList[listBox1.SelectedIndex];
+            ListDirectory2(_folderRoot);
         }
 
-        private void buttonTree_Click(object sender, EventArgs e)
-        {
-            if (listBox1.SelectedItem == null)
-                listBox1.SelectedIndex = 0;
+        //private void ListDirectory(string path)
+        //{
+        //    treeView1.Nodes.Clear();
 
-            string folder = "\"" + _folderList[listBox1.SelectedIndex] + "\"";
-            string aaa = Directory.GetCurrentDirectory();
-            Process.Start("MusicPlayByFoldersArtistYearAlbum", folder);
+        //    var rootDirectoryInfo = new DirectoryInfo(path);
+        //    treeView1.Nodes.Add(CreateDirectoryNode(rootDirectoryInfo));
+        //    RemoveDirectoryNode(treeView1.Nodes);
+        //}
+
+        private void ListDirectory2(string path)
+        {
+            treeView1.Nodes.Clear();
+
+            var rootDirectoryInfo = new DirectoryInfo(path);
+            MyTreeNode myTree = CreateDirectoryNode2(rootDirectoryInfo);
+
+            RemoveDirectoryNode2(myTree);
+        }
+
+        //private void RemoveDirectoryNode(TreeNodeCollection nodes)
+        //{
+        //    foreach(TreeNode node in nodes)
+        //    {
+        //        if (node == null)
+        //            continue;
+
+        //        if ((node.Nodes.Count == 0) && (node.Tag == null))
+        //            node.Remove();
+        //        else
+        //            RemoveDirectoryNode(node.Nodes);
+        //    }
+        //}
+
+        private void RemoveDirectoryNode2(MyTreeNode myTree)
+        {
+            foreach (MyTreeNode node in myTree)
+            {
+                if (node == null)
+                    continue;
+
+                //            if ((node.Nodes.Count == 0) && (node.Tag == null))
+                //                 node.Remove();
+                //             else
+                //                 RemoveDirectoryNode2(node.Nodes);
+            }
+        }
+
+        private string xpto = ".MP3,.FLAC,.APE,.WAV,.WP,.CUE";
+
+        private TreeNode CreateDirectoryNode(DirectoryInfo directoryInfo)
+        {
+
+            var directoryNode = new TreeNode(directoryInfo.Name);
+
+            string ext = "";
+            bool isSound = false;
+            bool hasSounds = false;
+
+            foreach (var file in directoryInfo.GetFiles())
+            {
+                ext = file.Extension.ToUpper();
+                isSound = xpto.Contains(ext);
+                if (!hasSounds)
+                    if (isSound)
+                        hasSounds = true;
+
+                if (isSound)
+                {
+                    TreeNode treeNode = new TreeNode(file.Name);
+                    treeNode.Tag = "F";
+                    directoryNode.Nodes.Add(treeNode);
+                    //directoryNode.Nodes.Add(new TreeNode(file.Name));
+                }
+            }
+
+            foreach (var directory in directoryInfo.GetDirectories())
+            {
+                directoryNode.Nodes.Add(CreateDirectoryNode(directory));
+            }
+
+            return directoryNode;
+        }
+
+        private MyTreeNode CreateDirectoryNode2(DirectoryInfo directoryInfo)
+        {
+            var myTreeNode = new MyTreeNode(directoryInfo.FullName, directoryInfo.Name);
+
+            string ext = "";
+            bool isSound = false;
+            bool hasSounds = false;
+
+            foreach (var file in directoryInfo.GetFiles())
+            {
+                ext = file.Extension.ToUpper();
+                isSound = xpto.Contains(ext);
+                if (!hasSounds)
+                    if (isSound)
+                        hasSounds = true;
+
+                if (isSound)
+                {
+                    MyTreeNode treeNode2 = new MyTreeNode(file.Name, directoryInfo.Name, 'F');
+                    myTreeNode.Nodes.Add(treeNode2);
+                }
+            }
+
+            foreach (var directory in directoryInfo.GetDirectories())
+            {
+                myTreeNode.Nodes.Add(CreateDirectoryNode2(directory));
+            }
+
+            return myTreeNode;
+        }
+
+
+
+
+
+
+
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            //if (listBox1.SelectedItem == null)
+            //    listBox1.SelectedIndex = 0;
+        }
+
+        private void textBoxArtist_Leave(object sender, EventArgs e)
+        {
+            ////if (this.comboBoxSearchType.Text == "name*")
+            //    //this.l.l.l.labelSearchTypeX.Text = "Searching In Collection First Letter.";
+            ////else
+            //    this.label3.Text = string.Empty;    
         }
     }
-}
 
+}

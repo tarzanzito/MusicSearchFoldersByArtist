@@ -202,7 +202,7 @@ namespace MusicManager
             progressBar1.Value = e.ProgressPercentage;
             System.Windows.Forms.Application.DoEvents();
 
-            _workerlocked = false;
+            this._workerlocked = false;
         }
 
         private void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
@@ -238,13 +238,13 @@ namespace MusicManager
                 return;
 
             _isMarquee = true;
-            backgroundWorkerReportProgress(0, null);
+            BackgroundWorkerReportProgress(0, null);
 
             string[] folderArray = Directory.GetDirectories(rootDirectoryPath);
             _totalFolders = folderArray.Length;
 
             _isFirstItem = true;
-            backgroundWorkerReportProgress(0, null);
+            BackgroundWorkerReportProgress(0, null);
 
             WorkerProcessState workerProcessState;
             for (int item = 0; item < _totalFolders; item++)
@@ -282,10 +282,11 @@ namespace MusicManager
                     }
                 }
 
-                backgroundWorkerReportProgress(item, workerProcessState);
+                BackgroundWorkerReportProgress(item, workerProcessState);
             }
         }
-        private void backgroundWorkerReportProgress(int percentProgress, object userState)
+
+        private void BackgroundWorkerReportProgress(int percentProgress, object userState)
         {
             this._workerlocked = true;
 
@@ -306,7 +307,11 @@ namespace MusicManager
             //só pode ser na funcao que representa o evento ReportProgress ser lançado e o worker continuar e não esperar pelo fim da funcao
             backgroundWorker1.ReportProgress(percentProgress, userState);
 
-            while (this._workerlocked) { } // se retirar esta linha certos item não aparecem na listbox mas aparecem no ficheiro
+            Int64 aaa = 0;
+            //while (this._workerlocked)
+            {
+                aaa = aaa + 1;
+            } // se retirar esta linha certos item não aparecem na listbox mas aparecem no ficheiro
         }
 
         #endregion

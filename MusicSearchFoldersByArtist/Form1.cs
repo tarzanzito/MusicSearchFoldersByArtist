@@ -1,30 +1,34 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Net.Sockets;
+using System.Security.Cryptography.X509Certificates;
 using System.Windows.Forms;
 
 
 namespace MusicManager
 {
-    public partial class Form1 : Form
+    internal partial class Form1 : Form
     {
         #region Fields
 
         private readonly List<string> _folderList = new List<string>();
-        private const string _root1 = @"\\NAS-QNAP\music\_COLLECTION";
-        private const string _root2 = @"\\NAS-QNAP\music_lossless\_COLLECTION";
         private int _totalFolders;
         private bool _isFirstItem;
         private bool _isMarquee;
+        private List<CollectionInfo> _collectionInfoArray;
+        private bool _workerlocked;
 
         #endregion
 
         #region Constructors
-                
-        public Form1()
+
+        public Form1(List<CollectionInfo> collectionInfoArray)
         {
+            _collectionInfoArray = collectionInfoArray;
             InitializeComponent();
         }
 
@@ -53,9 +57,8 @@ namespace MusicManager
                 // set arguments to worker
                 // Não devem ser usados directamente os conteudos que estão nos componentes UI dentro do RunWorkerAsync
                 // deve receber object class com toda a info necessaria como arguments.
-                WorkerArguments arguments = new WorkerArguments();
-                arguments.Artist = textBoxArtist.Text;
-                arguments.SearchType = (Utils.SearchType)comboBoxSearchType.SelectedIndex;
+                Utils.SearchType searchType = (Utils.SearchType)comboBoxSearchType.SelectedIndex;
+                WorkerArguments arguments = new WorkerArguments(textBoxArtist.Text, searchType);
 
                 backgroundWorker1.RunWorkerAsync(arguments);
             }
@@ -68,6 +71,7 @@ namespace MusicManager
 
         private void buttonClose_Click(object sender, EventArgs e)
         {
+            backgroundWorker1.CancelAsync();
             Close();
         }
 
@@ -121,6 +125,15 @@ namespace MusicManager
         {
             try
             {
+
+                // REF1 ////////////////////////////////
+                //using (StreamWriter sw = File.CreateText("MyTest.txt"))
+                //{
+                //}
+                ////////////////////////////////////////
+                
+                _workerlocked = false;
+
                 //get Argument
                 WorkerArguments arguments = e.Argument as WorkerArguments;
 
@@ -136,57 +149,60 @@ namespace MusicManager
                     if (firstLetter == null)
                         throw new Exception("First letter is invalid.");
 
-                    string rootFolder = $@"{_root1}\{firstLetter}\";
-                    GetDirectories(rootFolder, baseArtist, Utils.Collection.MP3, arguments.SearchType, e);
-
-                    rootFolder = $@"{_root2}\{firstLetter}\";
-                    GetDirectories(rootFolder, baseArtist, Utils.Collection.FLAC, arguments.SearchType, e);
+                    foreach (CollectionInfo item in _collectionInfoArray)
+                    {
+                        string rootFolder = $@"{item.Path}\{firstLetter}\";
+                        GetDirectories(rootFolder, baseArtist, item.Name, arguments.SearchType, e);
+                    }
                 }
                 else
                 {
                     //*name*
-                    string rootFolder = $@"{_root1}\";
-                    GetDirectoriesAll(rootFolder, baseArtist, Utils.Collection.MP3, arguments.SearchType, e);
-
-                    rootFolder = $@"{_root2}\";
-                    GetDirectoriesAll(rootFolder, baseArtist, Utils.Collection.FLAC, arguments.SearchType, e);
+                    foreach (CollectionInfo item in _collectionInfoArray)
+                    {
+                        string rootFolder = $@"{item.Path}\";
+                        GetDirectoriesAll(rootFolder, baseArtist, item.Name, arguments.SearchType, e);
+                    }
                 }
             }
             catch (Exception ex)
             {
+                backgroundWorker1.CancelAsync();
                 listBox1.Items.Add(ex.Message); //review throw in thread
                 ChangeFormStatus(true);
             }
         }
-
+        
         private void backgroundWorker1_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             if (_isMarquee)
             {
-                progressBar1.Style = ProgressBarStyle.Marquee;
-                progressBar1.Value = 0;
                 _isMarquee = false;
-                return;
+                progressBar1.Value = 0;
+                progressBar1.Style = ProgressBarStyle.Marquee;
             }
 
             if (_isFirstItem)
             {
-                progressBar1.Style = ProgressBarStyle.Blocks;
-                progressBar1.Maximum = _totalFolders;
-                progressBar1.Value = 0;
                 _isFirstItem = false;
-                return;
+                progressBar1.Value = 0;
+                progressBar1.Maximum = _totalFolders;
+                progressBar1.Style = ProgressBarStyle.Blocks;
             }
-
-            // Não devem ser usados directamente os conteudos que estão nos componentes ou em fields da classe
-            // deve receber object class com toda a info necessaria no "e.UserState".
 
             if (e.UserState != null)
             {
+                // Não devem ser usados directamente os conteudos que estão nos componentes ou em fields da classe
+                // deve receber object class com toda a info necessaria no "e.UserState".
                 WorkerProcessState WorkerProcessState = e.UserState as WorkerProcessState;
-                listBox1.Items.Add(WorkerProcessState.Collection.ToString() + " : " + WorkerProcessState.Artist);
+                listBox1.Items.Add(WorkerProcessState.CollectionName + " : " + WorkerProcessState.Artist);
                 _folderList.Add(WorkerProcessState.Folder);
             }
+
+            progressBar1.Value = e.ProgressPercentage;
+            System.Windows.Forms.Application.DoEvents();
+
+            _workerlocked = false;
         }
 
         private void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
@@ -198,7 +214,7 @@ namespace MusicManager
 
         #region BackgroundWorker Methods
 
-        private void GetDirectoriesAll(string rootDirectoryPath, string baseArtist, Utils.Collection collection, Utils.SearchType searchType, DoWorkEventArgs e)
+        private void GetDirectoriesAll(string rootDirectoryPath, string baseArtist, string collectionName, Utils.SearchType searchType, DoWorkEventArgs e)
         {
             if (e.Cancel == true)
                 return;
@@ -207,14 +223,13 @@ namespace MusicManager
 
             foreach (string folderName in folderArray)
             {
-                GetDirectories(folderName, baseArtist, collection, searchType, e);
-                // if (backgroundWorker1.CancellationPending == true)
+                GetDirectories(folderName, baseArtist, collectionName, searchType, e);
                 if (e.Cancel == true)
                     break;
             }
         }
 
-        private void GetDirectories(string rootDirectoryPath, string baseArtist, Utils.Collection collection, Utils.SearchType searchType, DoWorkEventArgs e)
+        private void GetDirectories(string rootDirectoryPath, string baseArtist, string collectionName, Utils.SearchType searchType, DoWorkEventArgs e)
         {
             if (e.Cancel == true)
                 return;
@@ -223,23 +238,19 @@ namespace MusicManager
                 return;
 
             _isMarquee = true;
-            backgroundWorker1.ReportProgress(0);
+            backgroundWorkerReportProgress(0, null);
 
             string[] folderArray = Directory.GetDirectories(rootDirectoryPath);
             _totalFolders = folderArray.Length;
 
             _isFirstItem = true;
-            WorkerProcessState workerProcessState;
-            backgroundWorker1.ReportProgress(0);
+            backgroundWorkerReportProgress(0, null);
 
-            //foreach (string folderName in folderArray)
+            WorkerProcessState workerProcessState;
             for (int item = 0; item < _totalFolders; item++)
             {
                 workerProcessState = null;
-
-               // if (e.Cancel == true)
-               //     break;
-
+                //System.Threading.Thread.Sleep(500);
                 if (backgroundWorker1.CancellationPending == true)
                 {
                     e.Cancel = true;
@@ -264,17 +275,38 @@ namespace MusicManager
 
                     if (addItem)
                     {
+
                         // Não devem ser usados directamente os conteudos que estão nos componentes ou em fields da classe
                         // ReportProgress deve receber object class com toda a info necessaria no seguendo parametro.
-                        workerProcessState = new WorkerProcessState();
-                        workerProcessState.Collection = collection;
-                        workerProcessState.Artist = shortName;
-                        workerProcessState.Folder = folderName;
+                        workerProcessState = new WorkerProcessState(collectionName, shortName, folderName);
                     }
                 }
 
-                backgroundWorker1.ReportProgress(item, workerProcessState);
+                backgroundWorkerReportProgress(item, workerProcessState);
             }
+        }
+        private void backgroundWorkerReportProgress(int percentProgress, object userState)
+        {
+            this._workerlocked = true;
+
+            /// REF 1 /////////////////////////////////////////
+            //if (userState != null)
+            //{
+            //    WorkerProcessState workerProcessState = userState as WorkerProcessState;
+            //    using (StreamWriter sw = File.AppendText("MyTest.txt"))
+            //    {
+            //        sw.WriteLine(workerProcessState.CollectionName + "-" + workerProcessState.Artist + "-" + workerProcessState.Folder);
+            //    }
+            //}
+            /////////////////////////////////////////////////////
+            
+
+            //isto tem um erro qualquer que por vezes não mostra os item todos encontrados na listbox.
+            //Se aqui escrever num ficheiros os itens aparecem todos no ficheiro e na listbox não.
+            //só pode ser na funcao que representa o evento ReportProgress ser lançado e o worker continuar e não esperar pelo fim da funcao
+            backgroundWorker1.ReportProgress(percentProgress, userState);
+
+            while (this._workerlocked) { } // se retirar esta linha certos item não aparecem na listbox mas aparecem no ficheiro
         }
 
         #endregion
@@ -293,7 +325,7 @@ namespace MusicManager
             buttonSearch.Enabled = enabled;
             buttonProgArchives.Enabled = enabled && (listBox1.Items.Count > 0);
             buttonCancel.Enabled = !enabled;
-            listBox1.Enabled = enabled && (listBox1.Items.Count > 0); 
+            listBox1.Enabled = enabled;// && (listBox1.Items.Count > 0); 
             comboBoxSearchType.Enabled = enabled;
             progressBar1.Visible = !enabled;
 

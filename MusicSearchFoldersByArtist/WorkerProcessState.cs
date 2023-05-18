@@ -4,8 +4,15 @@ namespace MusicManager
 {
     internal class WorkerProcessState
     {
-        public Utils.Collection Collection { get; set; }
-        public string Artist { get; set; }
-        public string Folder { get; set; }
+        public string CollectionName { get; private set; }
+        public string Artist { get; private set; }
+        public string Folder { get; private set; }
+
+        public WorkerProcessState(string collectionName, string artist, string folder)
+        {
+            CollectionName = collectionName;
+            Artist = artist;
+            Folder = folder;
+        }   
     }
 }

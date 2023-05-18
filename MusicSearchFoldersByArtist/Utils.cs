@@ -6,12 +6,6 @@ namespace MusicManager
 {
     internal class Utils
     {
-        internal enum Collection
-        {
-            MP3,
-            FLAC
-        }
-
         internal enum SearchType
         {
             CONSTany,   // name*

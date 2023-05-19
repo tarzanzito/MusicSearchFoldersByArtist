@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.Net.Sockets;
-using System.Security.Cryptography.X509Certificates;
 using System.Windows.Forms;
 
 
@@ -16,11 +13,10 @@ namespace MusicManager
         #region Fields
 
         private readonly List<string> _folderList = new List<string>();
-        private int _totalFolders;
-        private bool _isFirstItem;
-        private bool _isMarquee;
+        //private int _totalFolders = 1000;
+        //private bool _isFirstItem;
+        //private bool _isMarquee;
         private List<CollectionInfo> _collectionInfoArray;
-        private bool _workerlocked;
 
         #endregion
 
@@ -125,15 +121,11 @@ namespace MusicManager
         {
             try
             {
-
-                // REF1 ////////////////////////////////
+                // REF1
                 //using (StreamWriter sw = File.CreateText("MyTest.txt"))
                 //{
                 //}
-                ////////////////////////////////////////
                 
-                _workerlocked = false;
-
                 //get Argument
                 WorkerArguments arguments = e.Argument as WorkerArguments;
 
@@ -172,38 +164,76 @@ namespace MusicManager
                 ChangeFormStatus(true);
             }
         }
-        
+
         private void backgroundWorker1_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
-            if (_isMarquee)
-            {
-                _isMarquee = false;
-                progressBar1.Value = 0;
-                progressBar1.Style = ProgressBarStyle.Marquee;
-            }
-
-            if (_isFirstItem)
-            {
-                _isFirstItem = false;
-                progressBar1.Value = 0;
-                progressBar1.Maximum = _totalFolders;
-                progressBar1.Style = ProgressBarStyle.Blocks;
-            }
-
             if (e.UserState != null)
             {
-                // Não devem ser usados directamente os conteudos que estão nos componentes ou em fields da classe
-                // deve receber object class com toda a info necessaria no "e.UserState".
-                WorkerProcessState WorkerProcessState = e.UserState as WorkerProcessState;
-                listBox1.Items.Add(WorkerProcessState.CollectionName + " : " + WorkerProcessState.Artist);
-                _folderList.Add(WorkerProcessState.Folder);
+                if (e.UserState.GetType() == typeof(int))
+                {
+                    int total = (int)e.UserState;
+                    if (total == -1) //is like Marquee
+                    {
+                        progressBar1.Value = 0;
+                        progressBar1.Maximum = 100;
+                        progressBar1.Style = ProgressBarStyle.Marquee;
+                    }
+                    else //is First Item
+                    {
+                        progressBar1.Maximum = total;
+                        progressBar1.Value = total--;
+                        progressBar1.Style = ProgressBarStyle.Blocks;
+                    }
+                    System.Windows.Forms.Application.DoEvents();
+                    return;
+                }
+
+                if (e.UserState.GetType() == typeof(WorkerProcessState))
+                {
+                    // Não devem ser usados directamente os conteudos que estão nos componentes ou em fields da classe
+                    // deve receber object class com toda a info necessaria no "e.UserState".
+                    WorkerProcessState WorkerProcessState = e.UserState as WorkerProcessState;
+                    listBox1.Items.Add(WorkerProcessState.CollectionName + " : " + WorkerProcessState.Artist);
+                    _folderList.Add(WorkerProcessState.Folder);
+                }
             }
 
             progressBar1.Value = e.ProgressPercentage;
             System.Windows.Forms.Application.DoEvents();
-
-            this._workerlocked = false;
         }
+
+        //private void backgroundWorker1_ProgressChanged2(object sender, ProgressChangedEventArgs e)
+        //{
+        //    if (_isMarquee)
+        //    {
+        //        _isMarquee = false;
+        //        progressBar1.Value = 0;
+        //        progressBar1.Style = ProgressBarStyle.Marquee;
+        //    }
+
+        //    if (_isFirstItem)
+        //    {
+        //        _isFirstItem = false;
+        //        progressBar1.Value = 0;
+        //        progressBar1.Maximum = _totalFolders;
+        //        progressBar1.Style = ProgressBarStyle.Blocks;
+        //    }
+
+        //    if (e.UserState != null)
+        //    {
+        //        if (e.UserState.GetType() == typeof(WorkerProcessState))
+        //        {
+        //            // Não devem ser usados directamente os conteudos que estão nos componentes ou em fields da classe
+        //            // deve receber object class com toda a info necessaria no "e.UserState".
+        //            WorkerProcessState WorkerProcessState = e.UserState as WorkerProcessState;
+        //            listBox1.Items.Add(WorkerProcessState.CollectionName + " : " + WorkerProcessState.Artist);
+        //            _folderList.Add(WorkerProcessState.Folder);
+        //        }
+        //    }
+
+        //    progressBar1.Value = e.ProgressPercentage;
+        //    System.Windows.Forms.Application.DoEvents();
+        //}
 
         private void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
@@ -237,25 +267,30 @@ namespace MusicManager
             if (!Directory.Exists(rootDirectoryPath))
                 return;
 
-            _isMarquee = true;
-            BackgroundWorkerReportProgress(0, null);
+            //_isMarquee = true;
+            BackgroundWorkerReportProgress(0, -1); // is like Marquee
+            //System.Threading.Thread.Sleep(2500);
 
             string[] folderArray = Directory.GetDirectories(rootDirectoryPath);
-            _totalFolders = folderArray.Length;
+            int totalFolders = folderArray.Length;
 
-            _isFirstItem = true;
-            BackgroundWorkerReportProgress(0, null);
+            //_isFirstItem = true;
+            BackgroundWorkerReportProgress(0, totalFolders); // is First Item;
+            //System.Threading.Thread.Sleep(2500);
 
             WorkerProcessState workerProcessState;
-            for (int item = 0; item < _totalFolders; item++)
+            for (int item = 0; item < totalFolders; item++)
             {
-                workerProcessState = null;
-                //System.Threading.Thread.Sleep(500);
+
                 if (backgroundWorker1.CancellationPending == true)
                 {
                     e.Cancel = true;
                     break;
                 }
+
+                //System.Threading.Thread.Sleep(500);
+
+                workerProcessState = null;
 
                 string folderName = folderArray[item];
                 string shortName = folderName.Replace(rootDirectoryPath, "").Replace(@"\", "").Replace("/", "");
@@ -283,14 +318,14 @@ namespace MusicManager
                 }
 
                 BackgroundWorkerReportProgress(item, workerProcessState);
+
+                //System.Threading.Thread.Sleep(2500);
             }
         }
 
         private void BackgroundWorkerReportProgress(int percentProgress, object userState)
         {
-            this._workerlocked = true;
-
-            /// REF 1 /////////////////////////////////////////
+            /// REF1
             //if (userState != null)
             //{
             //    WorkerProcessState workerProcessState = userState as WorkerProcessState;
@@ -299,19 +334,12 @@ namespace MusicManager
             //        sw.WriteLine(workerProcessState.CollectionName + "-" + workerProcessState.Artist + "-" + workerProcessState.Folder);
             //    }
             //}
-            /////////////////////////////////////////////////////
-            
+           
 
             //isto tem um erro qualquer que por vezes não mostra os item todos encontrados na listbox.
             //Se aqui escrever num ficheiros os itens aparecem todos no ficheiro e na listbox não.
             //só pode ser na funcao que representa o evento ReportProgress ser lançado e o worker continuar e não esperar pelo fim da funcao
             backgroundWorker1.ReportProgress(percentProgress, userState);
-
-            Int64 aaa = 0;
-            //while (this._workerlocked)
-            {
-                aaa = aaa + 1;
-            } // se retirar esta linha certos item não aparecem na listbox mas aparecem no ficheiro
         }
 
         #endregion

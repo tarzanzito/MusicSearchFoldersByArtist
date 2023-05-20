@@ -32,7 +32,7 @@
             this.label1 = new System.Windows.Forms.Label();
             this.textBoxArtist = new System.Windows.Forms.TextBox();
             this.buttonSearch = new System.Windows.Forms.Button();
-            this.listBox1 = new System.Windows.Forms.ListBox();
+            this.listBoxFound = new System.Windows.Forms.ListBox();
             this.comboBoxSearchType = new System.Windows.Forms.ComboBox();
             this.buttonClose = new System.Windows.Forms.Button();
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
@@ -41,7 +41,7 @@
             this.label2 = new System.Windows.Forms.Label();
             this.buttonProgArchives = new System.Windows.Forms.Button();
             this.labelSearchType = new System.Windows.Forms.Label();
-            this.buttonTree = new System.Windows.Forms.Button();
+            this.buttonShowTree = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // label1
@@ -74,17 +74,17 @@
             this.buttonSearch.UseVisualStyleBackColor = true;
             this.buttonSearch.Click += new System.EventHandler(this.buttonSearch_Click);
             // 
-            // listBox1
+            // listBoxFound
             // 
-            this.listBox1.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.listBox1.FormattingEnabled = true;
-            this.listBox1.ItemHeight = 15;
-            this.listBox1.Location = new System.Drawing.Point(18, 70);
-            this.listBox1.Name = "listBox1";
-            this.listBox1.ScrollAlwaysVisible = true;
-            this.listBox1.Size = new System.Drawing.Size(462, 154);
-            this.listBox1.TabIndex = 3;
-            this.listBox1.DoubleClick += new System.EventHandler(this.listBox1_DoubleClick);
+            this.listBoxFound.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.listBoxFound.FormattingEnabled = true;
+            this.listBoxFound.ItemHeight = 15;
+            this.listBoxFound.Location = new System.Drawing.Point(18, 70);
+            this.listBoxFound.Name = "listBoxFound";
+            this.listBoxFound.ScrollAlwaysVisible = true;
+            this.listBoxFound.Size = new System.Drawing.Size(462, 169);
+            this.listBoxFound.TabIndex = 3;
+            this.listBoxFound.DoubleClick += new System.EventHandler(this.listBox1_DoubleClick);
             // 
             // comboBoxSearchType
             // 
@@ -104,7 +104,7 @@
             // 
             this.buttonClose.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.buttonClose.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.buttonClose.Location = new System.Drawing.Point(486, 195);
+            this.buttonClose.Location = new System.Drawing.Point(486, 210);
             this.buttonClose.Name = "buttonClose";
             this.buttonClose.Size = new System.Drawing.Size(56, 29);
             this.buttonClose.TabIndex = 5;
@@ -156,9 +156,9 @@
             // 
             this.buttonProgArchives.Location = new System.Drawing.Point(486, 89);
             this.buttonProgArchives.Name = "buttonProgArchives";
-            this.buttonProgArchives.Size = new System.Drawing.Size(56, 29);
+            this.buttonProgArchives.Size = new System.Drawing.Size(56, 47);
             this.buttonProgArchives.TabIndex = 10;
-            this.buttonProgArchives.Text = "Site";
+            this.buttonProgArchives.Text = "Prog Achives";
             this.buttonProgArchives.UseVisualStyleBackColor = true;
             this.buttonProgArchives.Click += new System.EventHandler(this.buttonProgArchives_Click);
             // 
@@ -171,15 +171,15 @@
             this.labelSearchType.TabIndex = 11;
             this.labelSearchType.Text = "Search type";
             // 
-            // buttonTree
+            // buttonShowTree
             // 
-            this.buttonTree.Location = new System.Drawing.Point(486, 124);
-            this.buttonTree.Name = "buttonTree";
-            this.buttonTree.Size = new System.Drawing.Size(56, 47);
-            this.buttonTree.TabIndex = 12;
-            this.buttonTree.Text = "Show Tree";
-            this.buttonTree.UseVisualStyleBackColor = true;
-            this.buttonTree.Click += new System.EventHandler(this.buttonTree_Click);
+            this.buttonShowTree.Location = new System.Drawing.Point(486, 142);
+            this.buttonShowTree.Name = "buttonShowTree";
+            this.buttonShowTree.Size = new System.Drawing.Size(56, 47);
+            this.buttonShowTree.TabIndex = 12;
+            this.buttonShowTree.Text = "Show Tree";
+            this.buttonShowTree.UseVisualStyleBackColor = true;
+            this.buttonShowTree.Click += new System.EventHandler(this.buttonShowTree_Click);
             // 
             // Form1
             // 
@@ -187,8 +187,8 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.buttonClose;
-            this.ClientSize = new System.Drawing.Size(554, 236);
-            this.Controls.Add(this.buttonTree);
+            this.ClientSize = new System.Drawing.Size(554, 248);
+            this.Controls.Add(this.buttonShowTree);
             this.Controls.Add(this.labelSearchType);
             this.Controls.Add(this.buttonProgArchives);
             this.Controls.Add(this.label2);
@@ -196,7 +196,7 @@
             this.Controls.Add(this.buttonCancel);
             this.Controls.Add(this.buttonClose);
             this.Controls.Add(this.comboBoxSearchType);
-            this.Controls.Add(this.listBox1);
+            this.Controls.Add(this.listBoxFound);
             this.Controls.Add(this.buttonSearch);
             this.Controls.Add(this.textBoxArtist);
             this.Controls.Add(this.label1);
@@ -217,7 +217,7 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox textBoxArtist;
         private System.Windows.Forms.Button buttonSearch;
-        private System.Windows.Forms.ListBox listBox1;
+        private System.Windows.Forms.ListBox listBoxFound;
         private System.Windows.Forms.ComboBox comboBoxSearchType;
         private System.Windows.Forms.Button buttonClose;
         private System.ComponentModel.BackgroundWorker backgroundWorker1;
@@ -226,7 +226,7 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Button buttonProgArchives;
         private System.Windows.Forms.Label labelSearchType;
-        private System.Windows.Forms.Button buttonTree;
+        private System.Windows.Forms.Button buttonShowTree;
     }
 }
 

@@ -12,19 +12,22 @@ namespace MusicManager
     {
         #region Fields
 
-        private readonly List<string> _folderList = new List<string>();
-        //private int _totalFolders = 1000;
-        //private bool _isFirstItem;
-        //private bool _isMarquee;
-        private List<CollectionInfo> _collectionInfoArray;
+        private readonly List<string> _folderFoundList;
+        private readonly List<CollectionInfo> _collectionInfoArray;
+        private readonly string _progArchives;
+        private readonly string _musicPlayerApplication;
 
         #endregion
 
         #region Constructors
 
-        public Form1(List<CollectionInfo> collectionInfoArray)
+        public Form1(AppConfigInfo appConfigInfo)
         {
-            _collectionInfoArray = collectionInfoArray;
+            _collectionInfoArray = appConfigInfo.CollectionList;
+            _progArchives = appConfigInfo.ProgArchives;
+            _musicPlayerApplication = appConfigInfo.MusicPlayerApplication;
+            _folderFoundList = new List<string>();
+
             InitializeComponent();
         }
 
@@ -35,8 +38,15 @@ namespace MusicManager
         private void Form1_Load(object sender, EventArgs e)
         {
             this.Text = $"{this.Text} - Version: {System.Windows.Forms.Application.ProductVersion}";
+
+            buttonProgArchives.Visible = (_progArchives != null);
+            buttonShowTree.Visible = (_musicPlayerApplication != null);
+
             comboBoxSearchType.SelectedIndex = 0;
+            
             SearchTypeMessage(comboBoxSearchType.SelectedIndex);
+
+            ChangeFormStatus(true);
         }
 
         private void buttonSearch_Click(object sender, EventArgs e)
@@ -60,7 +70,7 @@ namespace MusicManager
             }
             catch (Exception ex)
             {
-                listBox1.Items.Add(ex.Message);
+                listBoxFound.Items.Add(ex.Message);
                 ChangeFormStatus(true);
             }
         }
@@ -73,9 +83,19 @@ namespace MusicManager
 
         private void listBox1_DoubleClick(object sender, EventArgs e)
         {
-            string folder = $"\"{_folderList[listBox1.SelectedIndex]}\"";
+            if (listBoxFound.SelectedItem == null)
+                listBoxFound.SelectedIndex = 0;
 
-            Process.Start("explorer.exe", folder);
+            string folder = _folderFoundList[listBoxFound.SelectedIndex];
+            if (!Directory.Exists(folder))
+            {
+                MessageBox.Show($"Folder not found. [{folder}]", "App ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            string folderQuotes = $"\"{folder}\"";
+
+            Process.Start("explorer.exe", folderQuotes);
         }
 
         private void buttonCancel_Click(object sender, EventArgs e)
@@ -89,16 +109,33 @@ namespace MusicManager
 
         private void buttonProgArchives_Click(object sender, EventArgs e)
         {
-            if (listBox1.SelectedItem == null)
-                listBox1.SelectedIndex = 0;
+            if (listBoxFound.Items.Count == 0)
+                return;
 
-            string folder = _folderList[listBox1.SelectedIndex];
+            if (listBoxFound.SelectedItem == null)
+                listBoxFound.SelectedIndex = 0;
+
+            string folder = _folderFoundList[listBoxFound.SelectedIndex];
 
             string FolderName = Path.GetFileName(folder);
-            string cleanName = FolderName.Replace("{", "").Replace("}", "").Replace(" ", "%20").Trim();
-            string finalName = Utils.RemoveDiacritics(cleanName, Utils.TextCaseAction.ToUpper);
+           
+            string[] words = FolderName.Split('{');
 
-            Process.Start("http://www.progarchives.com/google-search-results.asp?cx=artists&q=" + finalName);
+            string artist = "";
+            string country = "";
+
+            if (words.Length > 0)
+                artist = "'" + words[0].Trim() + "'";
+            
+            if (words.Length > 1)
+                country = "'" + words[1].Replace("}", "").Trim() + "'";
+
+            string filter = artist; // + " " + country; ////o filter stays only with 'artist'. ignore the 'country'
+
+            string cleanfilter = filter.Replace(" ", "%20"); //url without spaces
+            string finalFilter = Utils.RemoveDiacritics(cleanfilter, Utils.TextCaseAction.ToUpper);
+
+            Process.Start(_progArchives + finalFilter);
         }
 
         private void textBoxArtist_TextChanged(object sender, EventArgs e)
@@ -109,6 +146,32 @@ namespace MusicManager
         private void comboBoxSearchType_SelectedIndexChanged(object sender, EventArgs e)
         {
             SearchTypeMessage(comboBoxSearchType.SelectedIndex);
+        }
+
+        private void buttonShowTree_Click(object sender, EventArgs e)
+        {
+            if (listBoxFound.Items.Count == 0)
+                return;
+
+            if (listBoxFound.SelectedItem == null)
+                listBoxFound.SelectedIndex = 0;
+
+
+            //Process[] pname = Process.GetProcessesByName("notepad");
+            //if (pname.Length == 0)
+            //    MessageBox.Show("nothing");
+            //else
+            //    MessageBox.Show("run");
+
+            if (!File.Exists(this._musicPlayerApplication))
+            {
+                MessageBox.Show($"'File [{_musicPlayerApplication}] not found.", "App ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            string folder = "\"" + _folderFoundList[listBoxFound.SelectedIndex] + "\"";
+
+            Process.Start(_musicPlayerApplication, folder);
         }
 
         #endregion
@@ -160,7 +223,7 @@ namespace MusicManager
             catch (Exception ex)
             {
                 backgroundWorker1.CancelAsync();
-                listBox1.Items.Add(ex.Message); //review throw in thread
+                listBoxFound.Items.Add(ex.Message); //review throw in thread
                 ChangeFormStatus(true);
             }
         }
@@ -193,8 +256,8 @@ namespace MusicManager
                     // Não devem ser usados directamente os conteudos que estão nos componentes ou em fields da classe
                     // deve receber object class com toda a info necessaria no "e.UserState".
                     WorkerProcessState WorkerProcessState = e.UserState as WorkerProcessState;
-                    listBox1.Items.Add(WorkerProcessState.CollectionName + " : " + WorkerProcessState.Artist);
-                    _folderList.Add(WorkerProcessState.Folder);
+                    listBoxFound.Items.Add(WorkerProcessState.CollectionName + " : " + WorkerProcessState.Artist);
+                    _folderFoundList.Add(WorkerProcessState.Folder);
                 }
             }
 
@@ -267,21 +330,19 @@ namespace MusicManager
             if (!Directory.Exists(rootDirectoryPath))
                 return;
 
-            //_isMarquee = true;
-            BackgroundWorkerReportProgress(0, -1); // is like Marquee
+            BackgroundWorkerReportProgress(0, -1); // signals - like Marquee
             //System.Threading.Thread.Sleep(2500);
 
             string[] folderArray = Directory.GetDirectories(rootDirectoryPath);
             int totalFolders = folderArray.Length;
 
-            //_isFirstItem = true;
-            BackgroundWorkerReportProgress(0, totalFolders); // is First Item;
+            BackgroundWorkerReportProgress(0, totalFolders); //signals - First Item;
             //System.Threading.Thread.Sleep(2500);
 
             WorkerProcessState workerProcessState;
+
             for (int item = 0; item < totalFolders; item++)
             {
-
                 if (backgroundWorker1.CancellationPending == true)
                 {
                     e.Cancel = true;
@@ -312,20 +373,20 @@ namespace MusicManager
                     {
 
                         // Não devem ser usados directamente os conteudos que estão nos componentes ou em fields da classe
-                        // ReportProgress deve receber object class com toda a info necessaria no seguendo parametro.
+                        // ReportProgress deve receber object com toda a info necessaria no segundo parametro.
                         workerProcessState = new WorkerProcessState(collectionName, shortName, folderName);
                     }
                 }
 
                 BackgroundWorkerReportProgress(item, workerProcessState);
 
-                //System.Threading.Thread.Sleep(2500);
+                //System.Threading.Thread.Sleep(500);
             }
         }
 
         private void BackgroundWorkerReportProgress(int percentProgress, object userState)
         {
-            /// REF1
+            //REF1
             //if (userState != null)
             //{
             //    WorkerProcessState workerProcessState = userState as WorkerProcessState;
@@ -335,10 +396,6 @@ namespace MusicManager
             //    }
             //}
            
-
-            //isto tem um erro qualquer que por vezes não mostra os item todos encontrados na listbox.
-            //Se aqui escrever num ficheiros os itens aparecem todos no ficheiro e na listbox não.
-            //só pode ser na funcao que representa o evento ReportProgress ser lançado e o worker continuar e não esperar pelo fim da funcao
             backgroundWorker1.ReportProgress(percentProgress, userState);
         }
 
@@ -353,27 +410,27 @@ namespace MusicManager
             else
                 Cursor = Cursors.WaitCursor;
 
-
             textBoxArtist.Enabled = enabled;
             buttonSearch.Enabled = enabled;
-            buttonProgArchives.Enabled = enabled && (listBox1.Items.Count > 0);
+            if (buttonProgArchives.Visible)
+                buttonProgArchives.Enabled = enabled && (listBoxFound.Items.Count > 0);
+            if (buttonShowTree.Visible)
+                buttonShowTree.Enabled = enabled && (listBoxFound.Items.Count > 0);
             buttonCancel.Enabled = !enabled;
-            listBox1.Enabled = enabled;// && (listBox1.Items.Count > 0); 
+            listBoxFound.Enabled = enabled && (listBoxFound.Items.Count > 0); 
             comboBoxSearchType.Enabled = enabled;
             progressBar1.Visible = !enabled;
 
             if (!enabled)
             {
-                listBox1.Items.Clear();
-                _folderList.Clear();
+                listBoxFound.Items.Clear();
+                _folderFoundList.Clear();
                 progressBar1.Style = ProgressBarStyle.Blocks;
             }
             progressBar1.Value = 0;
 
             System.Windows.Forms.Application.DoEvents();
         }
-
-        #endregion
 
         private void SearchTypeMessage(int val)
         {
@@ -383,15 +440,8 @@ namespace MusicManager
                 this.labelSearchType.Text = "Search in ALL Collection folders.  (High-cost)";
         }
 
-        private void buttonTree_Click(object sender, EventArgs e)
-        {
-            if (listBox1.SelectedItem == null)
-                listBox1.SelectedIndex = 0;
+        #endregion
 
-            string folder = "\"" + _folderList[listBox1.SelectedIndex] + "\"";
-            string aaa = Directory.GetCurrentDirectory();
-            Process.Start("MusicPlayByFoldersArtistYearAlbum", folder);
-        }
     }
 }
 

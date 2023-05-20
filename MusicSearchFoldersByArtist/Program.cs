@@ -1,8 +1,8 @@
-﻿using MusicManager;
+﻿
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Windows.Forms;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.ToolTip;
 
 namespace MusicManager
 {
@@ -14,18 +14,18 @@ namespace MusicManager
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            List<CollectionInfo> collectionList = ReadNamesAndPathsFromConfig();
-            if (collectionList == null)
+            AppConfigInfo appConfigInfo = ReadFromConfigFile();
+            if (appConfigInfo == null)
                 return 1;
 
-            Application.Run(new Form1(collectionList));
+            Application.Run(new Form1(appConfigInfo));
 
             return 0;
         }
 
-        private static List<CollectionInfo> ReadNamesAndPathsFromConfig()
+        private static AppConfigInfo ReadFromConfigFile()
         {
-
+            //MusicCollectionsName array
             string collectionsName = System.Configuration.ConfigurationManager.AppSettings["MusicCollectionsName"];
             if (collectionsName == null)
             {
@@ -45,18 +45,59 @@ namespace MusicManager
 
             if (pathArray.Length != nameArray.Length)
             {
-                MessageBox.Show("'App.Config' entries 'MusicCollectionsName' and 'MusicCollectionsPath' do not contains some number of items.", "App.Config ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("'App.Config' entries 'MusicCollectionsName' and 'MusicCollectionsPath' do not contains the some number of items.", "App.Config ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return null;
             }
 
+            ////mount list
             List<CollectionInfo> collectionInfoList = new List<CollectionInfo>();
             for (int i = 0; i < nameArray.Length; i++)
             {
-                CollectionInfo collectionInfo = new CollectionInfo(nameArray[i], pathArray[i]);
+                string name = nameArray[i].Trim();
+                if (name == "")
+                {
+                    MessageBox.Show("'App.Config' entry 'MusicCollectionsName' has an empty item.", "App.Config ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return null;
+                }
+                string path = pathArray[i].Trim();
+                if (path == "")
+                {
+                    MessageBox.Show("'App.Config' entry 'MusicCollectionsPath' has an empty item.", "App.Config ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return null;
+                }
+
+                CollectionInfo collectionInfo = new CollectionInfo(name, path);
                 collectionInfoList.Add(collectionInfo);
             }
 
-            return collectionInfoList;
+            //ProgArchives
+            string progArchives = System.Configuration.ConfigurationManager.AppSettings["ProgArchives"];
+            if (progArchives != null)
+            {
+                progArchives = progArchives.Trim();
+                if (progArchives == "")
+                    progArchives = null;
+            }
+
+            //MusicPlayerApplication
+            string musicPlayerApplication = System.Configuration.ConfigurationManager.AppSettings["MusicPlayerApplication"];
+            if (musicPlayerApplication != null)
+            {
+                musicPlayerApplication = musicPlayerApplication.Trim();
+                if (musicPlayerApplication == "")
+                    musicPlayerApplication = null;
+                else
+                {
+                    if (!File.Exists(musicPlayerApplication))
+                    {
+                        MessageBox.Show($"'App.Config' entry 'MusicPlayerApplication' points to file that does not exist. [{musicPlayerApplication}]", "App.Config ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return null;
+                    }
+
+                }
+            }
+
+            return new AppConfigInfo(collectionInfoList, progArchives, musicPlayerApplication);
         }
     }
 }

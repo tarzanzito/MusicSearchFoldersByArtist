@@ -18,7 +18,7 @@ namespace MusicManager
             if (appConfigInfo == null)
                 return 1;
 
-            Application.Run(new Form1(appConfigInfo));
+            Application.Run(new FormMain(appConfigInfo));
 
             return 0;
         }

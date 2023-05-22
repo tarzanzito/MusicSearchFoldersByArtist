@@ -8,7 +8,7 @@ using System.Windows.Forms;
 
 namespace MusicManager
 {
-    internal partial class Form1 : Form
+    internal partial class FormMain : Form
     {
         #region Fields
 
@@ -21,7 +21,7 @@ namespace MusicManager
 
         #region Constructors
 
-        public Form1(AppConfigInfo appConfigInfo)
+        public FormMain(AppConfigInfo appConfigInfo)
         {
             _collectionInfoArray = appConfigInfo.CollectionList;
             _progArchives = appConfigInfo.ProgArchives;
@@ -35,7 +35,7 @@ namespace MusicManager
 
         #region UI Events
 
-        private void Form1_Load(object sender, EventArgs e)
+        private void FormMain_Load(object sender, EventArgs e)
         {
             this.Text = $"{this.Text} - Version: {System.Windows.Forms.Application.ProductVersion}";
 
@@ -100,11 +100,11 @@ namespace MusicManager
 
         private void buttonCancel_Click(object sender, EventArgs e)
         {
-            if (backgroundWorker1.IsBusy != true)
-                return;
-
-            if (backgroundWorker1.WorkerSupportsCancellation == true)
-                backgroundWorker1.CancelAsync();
+            if (backgroundWorker1.IsBusy)
+            {
+                if (backgroundWorker1.WorkerSupportsCancellation)
+                    backgroundWorker1.CancelAsync();
+            }
         }
 
         private void buttonProgArchives_Click(object sender, EventArgs e)
@@ -220,10 +220,10 @@ namespace MusicManager
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception ex) //review throw in thread
             {
                 backgroundWorker1.CancelAsync();
-                listBoxFound.Items.Add(ex.Message); //review throw in thread
+                listBoxFound.Items.Add(ex.Message);
                 ChangeFormStatus(true);
             }
         }
@@ -265,39 +265,6 @@ namespace MusicManager
             System.Windows.Forms.Application.DoEvents();
         }
 
-        //private void backgroundWorker1_ProgressChanged2(object sender, ProgressChangedEventArgs e)
-        //{
-        //    if (_isMarquee)
-        //    {
-        //        _isMarquee = false;
-        //        progressBar1.Value = 0;
-        //        progressBar1.Style = ProgressBarStyle.Marquee;
-        //    }
-
-        //    if (_isFirstItem)
-        //    {
-        //        _isFirstItem = false;
-        //        progressBar1.Value = 0;
-        //        progressBar1.Maximum = _totalFolders;
-        //        progressBar1.Style = ProgressBarStyle.Blocks;
-        //    }
-
-        //    if (e.UserState != null)
-        //    {
-        //        if (e.UserState.GetType() == typeof(WorkerProcessState))
-        //        {
-        //            // Não devem ser usados directamente os conteudos que estão nos componentes ou em fields da classe
-        //            // deve receber object class com toda a info necessaria no "e.UserState".
-        //            WorkerProcessState WorkerProcessState = e.UserState as WorkerProcessState;
-        //            listBox1.Items.Add(WorkerProcessState.CollectionName + " : " + WorkerProcessState.Artist);
-        //            _folderList.Add(WorkerProcessState.Folder);
-        //        }
-        //    }
-
-        //    progressBar1.Value = e.ProgressPercentage;
-        //    System.Windows.Forms.Application.DoEvents();
-        //}
-
         private void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             ChangeFormStatus(true);
@@ -309,7 +276,7 @@ namespace MusicManager
 
         private void GetDirectoriesAll(string rootDirectoryPath, string baseArtist, string collectionName, Utils.SearchType searchType, DoWorkEventArgs e)
         {
-            if (e.Cancel == true)
+            if (e.Cancel)
                 return;
 
             string[] folderArray = Directory.GetDirectories(rootDirectoryPath);
@@ -317,14 +284,14 @@ namespace MusicManager
             foreach (string folderName in folderArray)
             {
                 GetDirectories(folderName, baseArtist, collectionName, searchType, e);
-                if (e.Cancel == true)
+                if (e.Cancel)
                     break;
             }
         }
 
         private void GetDirectories(string rootDirectoryPath, string baseArtist, string collectionName, Utils.SearchType searchType, DoWorkEventArgs e)
         {
-            if (e.Cancel == true)
+            if (e.Cancel)
                 return;
 
             if (!Directory.Exists(rootDirectoryPath))
@@ -343,7 +310,7 @@ namespace MusicManager
 
             for (int item = 0; item < totalFolders; item++)
             {
-                if (backgroundWorker1.CancellationPending == true)
+                if (backgroundWorker1.CancellationPending)
                 {
                     e.Cancel = true;
                     break;
@@ -406,9 +373,17 @@ namespace MusicManager
         private void ChangeFormStatus(bool enabled)
         {
             if (enabled)
+            {
                 Cursor = Cursors.Default;
+                buttonCancel.Cursor = Cursors.Default;
+                buttonClose.Cursor = Cursors.Default;
+            }
             else
+            {
                 Cursor = Cursors.WaitCursor;
+                buttonCancel.Cursor = Cursors.AppStarting;
+                buttonClose.Cursor = Cursors.AppStarting;
+            }
 
             textBoxArtist.Enabled = enabled;
             buttonSearch.Enabled = enabled;

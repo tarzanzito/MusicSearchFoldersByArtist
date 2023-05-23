@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 
 namespace MusicManager
@@ -195,7 +196,7 @@ namespace MusicManager
                 //init vars
                 string baseArtist = Utils.RemoveDiacritics(arguments.Artist, Utils.TextCaseAction.ToUpper);
                 if (baseArtist == null)
-                    throw new Exception("The artist is empty.");
+                    throw new Exception("The Artist is empty.");
 
                 if (arguments.SearchType == Utils.SearchType.CONSTany)
                 {
@@ -219,12 +220,15 @@ namespace MusicManager
                         GetDirectoriesAll(rootFolder, baseArtist, item.Name, arguments.SearchType, e);
                     }
                 }
+
+                WorkerResult result = new WorkerResult();
+                e.Result = result;
             }
             catch (Exception ex) //review throw in thread
             {
                 backgroundWorker1.CancelAsync();
-                listBoxFound.Items.Add(ex.Message);
-                ChangeFormStatus(true);
+                //e.Cancel = true;  // nao pode ser colocado a true porque result fica a null
+                e.Result = ex;
             }
         }
 
@@ -267,6 +271,38 @@ namespace MusicManager
 
         private void backgroundWorker1_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
+            try
+            {
+                if (!e.Cancelled)
+                {
+                    if (e.Result != null)
+                    {
+                        if (e.Result.GetType() == typeof(System.Exception))
+                        {
+                            Exception ex = e.Result as Exception;
+                            throw ex;
+                        }
+
+                        //bool isEception = typeof(System.Exception).IsAssignableFrom(e.Result.GetType());
+                        if (e.Result.GetType().IsSubclassOf(typeof(System.Exception)))
+                        {
+                            Exception ex = e.Result as Exception;
+                            throw ex;
+                        }
+                        
+                        if (e.Result.GetType() == typeof(WorkerResult))
+                        {
+                            WorkerResult result = (WorkerResult)e.Result;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ChangeFormStatus(true);
+                MessageBox.Show($"{ex.Message}", "App ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
             ChangeFormStatus(true);
         }
 
@@ -338,7 +374,6 @@ namespace MusicManager
 
                     if (addItem)
                     {
-
                         // Não devem ser usados directamente os conteudos que estão nos componentes ou em fields da classe
                         // ReportProgress deve receber object com toda a info necessaria no segundo parametro.
                         workerProcessState = new WorkerProcessState(collectionName, shortName, folderName);

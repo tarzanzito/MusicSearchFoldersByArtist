@@ -7,7 +7,7 @@
     <ProjectGuid>{E57CCD6E-371C-4BF8-9BD9-4B8AC67DE661}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <RootNamespace>MusicManager</RootNamespace>
-    <AssemblyName>MusicSerachFoldersByArtist</AssemblyName>
+    <AssemblyName>MusicSearchFoldersByArtist</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>

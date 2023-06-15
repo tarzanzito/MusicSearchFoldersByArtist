@@ -54,6 +54,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppConfigInfo.cs" />
+    <Compile Include="DiacriticsUtil.cs" />
     <Compile Include="WorkerResult.cs" />
     <Compile Include="CollectionInfo.cs" />
     <Compile Include="FormMain.cs">

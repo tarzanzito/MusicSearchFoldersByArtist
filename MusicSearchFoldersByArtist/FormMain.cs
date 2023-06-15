@@ -4,7 +4,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Windows.Forms;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 
 namespace MusicManager
@@ -134,7 +133,7 @@ namespace MusicManager
             string filter = artist; // + " " + country; ////o filter stays only with 'artist'. ignore the 'country'
 
             string cleanfilter = filter.Replace(" ", "%20"); //url without spaces
-            string finalFilter = Utils.RemoveDiacritics(cleanfilter, Utils.TextCaseAction.ToUpper);
+            string finalFilter = DiacriticsUtil.RemoveDiacritics(cleanfilter, DiacriticsUtil.TextCaseAction.ToUpper);
 
             Process.Start(_progArchives + finalFilter);
         }
@@ -194,7 +193,7 @@ namespace MusicManager
                 WorkerArguments arguments = e.Argument as WorkerArguments;
 
                 //init vars
-                string baseArtist = Utils.RemoveDiacritics(arguments.Artist, Utils.TextCaseAction.ToUpper);
+                string baseArtist = DiacriticsUtil.RemoveDiacritics(arguments.Artist, DiacriticsUtil.TextCaseAction.ToUpper);
                 if (baseArtist == null)
                     throw new Exception("The Artist is empty.");
 
@@ -359,7 +358,7 @@ namespace MusicManager
                 string folderName = folderArray[item];
                 string shortName = folderName.Replace(rootDirectoryPath, "").Replace(@"\", "").Replace("/", "");
 
-                string name = Utils.RemoveDiacritics(shortName, Utils.TextCaseAction.ToUpper);
+                string name = DiacriticsUtil.RemoveDiacritics(shortName, DiacriticsUtil.TextCaseAction.ToUpper);
 
                 int pos = name.IndexOf(baseArtist);
 

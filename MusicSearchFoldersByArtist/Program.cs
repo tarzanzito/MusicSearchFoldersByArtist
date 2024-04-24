@@ -40,8 +40,8 @@ namespace MusicManager
                 return null;
             }
 
-            string[] nameArray = collectionsName.Split(':');
-            string[] pathArray = collectionsPath.Split(':');
+            string[] nameArray = collectionsName.Split('|');
+            string[] pathArray = collectionsPath.Split('|');
 
             if (pathArray.Length != nameArray.Length)
             {

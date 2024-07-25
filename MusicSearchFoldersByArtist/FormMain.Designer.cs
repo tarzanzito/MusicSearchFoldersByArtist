@@ -32,7 +32,6 @@
             this.label1 = new System.Windows.Forms.Label();
             this.textBoxArtist = new System.Windows.Forms.TextBox();
             this.buttonSearch = new System.Windows.Forms.Button();
-            this.listBoxFound = new System.Windows.Forms.ListBox();
             this.comboBoxSearchType = new System.Windows.Forms.ComboBox();
             this.buttonClose = new System.Windows.Forms.Button();
             this.backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
@@ -42,6 +41,10 @@
             this.buttonProgArchives = new System.Windows.Forms.Button();
             this.labelSearchType = new System.Windows.Forms.Label();
             this.buttonShowTree = new System.Windows.Forms.Button();
+            this.listView1 = new System.Windows.Forms.ListView();
+            this.columnHeader0 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.columnHeader3 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.SuspendLayout();
             // 
             // label1
@@ -74,18 +77,6 @@
             this.buttonSearch.UseVisualStyleBackColor = true;
             this.buttonSearch.Click += new System.EventHandler(this.buttonSearch_Click);
             // 
-            // listBoxFound
-            // 
-            this.listBoxFound.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.listBoxFound.FormattingEnabled = true;
-            this.listBoxFound.ItemHeight = 15;
-            this.listBoxFound.Location = new System.Drawing.Point(18, 70);
-            this.listBoxFound.Name = "listBoxFound";
-            this.listBoxFound.ScrollAlwaysVisible = true;
-            this.listBoxFound.Size = new System.Drawing.Size(462, 169);
-            this.listBoxFound.TabIndex = 3;
-            this.listBoxFound.DoubleClick += new System.EventHandler(this.listBox1_DoubleClick);
-            // 
             // comboBoxSearchType
             // 
             this.comboBoxSearchType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
@@ -104,7 +95,7 @@
             // 
             this.buttonClose.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.buttonClose.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.buttonClose.Location = new System.Drawing.Point(486, 210);
+            this.buttonClose.Location = new System.Drawing.Point(484, 210);
             this.buttonClose.Name = "buttonClose";
             this.buttonClose.Size = new System.Drawing.Size(56, 29);
             this.buttonClose.TabIndex = 5;
@@ -139,7 +130,7 @@
             this.progressBar1.Location = new System.Drawing.Point(0, 0);
             this.progressBar1.MarqueeAnimationSpeed = 5;
             this.progressBar1.Name = "progressBar1";
-            this.progressBar1.Size = new System.Drawing.Size(554, 10);
+            this.progressBar1.Size = new System.Drawing.Size(552, 10);
             this.progressBar1.TabIndex = 8;
             this.progressBar1.Visible = false;
             // 
@@ -182,13 +173,48 @@
             this.buttonShowTree.UseVisualStyleBackColor = true;
             this.buttonShowTree.Click += new System.EventHandler(this.buttonShowTree_Click);
             // 
+            // listView1
+            // 
+            this.listView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.columnHeader0,
+            this.columnHeader1,
+            this.columnHeader3});
+            this.listView1.FullRowSelect = true;
+            this.listView1.GridLines = true;
+            this.listView1.HideSelection = false;
+            this.listView1.Location = new System.Drawing.Point(12, 69);
+            this.listView1.MultiSelect = false;
+            this.listView1.Name = "listView1";
+            this.listView1.Size = new System.Drawing.Size(468, 170);
+            this.listView1.TabIndex = 13;
+            this.listView1.UseCompatibleStateImageBehavior = false;
+            this.listView1.View = System.Windows.Forms.View.Details;
+            this.listView1.DoubleClick += new System.EventHandler(this.listView1_DoubleClick);
+            // 
+            // columnHeader0
+            // 
+            this.columnHeader0.Text = "Collection";
+            this.columnHeader0.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
+            this.columnHeader0.Width = 40;
+            // 
+            // columnHeader1
+            // 
+            this.columnHeader1.Text = "Artist";
+            this.columnHeader1.Width = 336;
+            // 
+            // columnHeader3
+            // 
+            this.columnHeader3.Text = "Last Update";
+            this.columnHeader3.Width = 70;
+            // 
             // FormMain
             // 
             this.AcceptButton = this.buttonSearch;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.buttonClose;
-            this.ClientSize = new System.Drawing.Size(554, 248);
+            this.ClientSize = new System.Drawing.Size(552, 251);
+            this.Controls.Add(this.listView1);
             this.Controls.Add(this.buttonShowTree);
             this.Controls.Add(this.labelSearchType);
             this.Controls.Add(this.buttonProgArchives);
@@ -197,7 +223,6 @@
             this.Controls.Add(this.buttonCancel);
             this.Controls.Add(this.buttonClose);
             this.Controls.Add(this.comboBoxSearchType);
-            this.Controls.Add(this.listBoxFound);
             this.Controls.Add(this.buttonSearch);
             this.Controls.Add(this.textBoxArtist);
             this.Controls.Add(this.label1);
@@ -218,7 +243,6 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.TextBox textBoxArtist;
         private System.Windows.Forms.Button buttonSearch;
-        private System.Windows.Forms.ListBox listBoxFound;
         private System.Windows.Forms.ComboBox comboBoxSearchType;
         private System.Windows.Forms.Button buttonClose;
         private System.ComponentModel.BackgroundWorker backgroundWorker1;
@@ -228,6 +252,10 @@
         private System.Windows.Forms.Button buttonProgArchives;
         private System.Windows.Forms.Label labelSearchType;
         private System.Windows.Forms.Button buttonShowTree;
+        private System.Windows.Forms.ListView listView1;
+        private System.Windows.Forms.ColumnHeader columnHeader1;
+        private System.Windows.Forms.ColumnHeader columnHeader3;
+        private System.Windows.Forms.ColumnHeader columnHeader0;
     }
 }
 

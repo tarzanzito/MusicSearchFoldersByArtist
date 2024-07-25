@@ -70,7 +70,13 @@ namespace MusicManager
             }
             catch (Exception ex)
             {
-                listBoxFound.Items.Add(ex.Message);
+                //listBoxFound.Items.Add(ex.Message);
+
+                var viewItem = new ListViewItem("ERR");
+                viewItem.SubItems.Add(ex.Message);
+                viewItem.SubItems.Add("Error");
+                listView1.Items.Add(viewItem);
+
                 ChangeFormStatus(true);
             }
         }
@@ -83,10 +89,19 @@ namespace MusicManager
 
         private void listBox1_DoubleClick(object sender, EventArgs e)
         {
-            if (listBoxFound.SelectedItem == null)
-                listBoxFound.SelectedIndex = 0;
+            //if (listBoxFound.SelectedItem == null)
+            //    listBoxFound.SelectedIndex = 0;
+            //string folder = _folderFoundList[listBoxFound.SelectedIndex];
 
-            string folder = _folderFoundList[listBoxFound.SelectedIndex];
+            if (listView1.Items.Count == 0)
+                return;
+
+            if (listView1.SelectedItems.Count == 0)
+                listView1.Items[0].Selected = true;
+
+            int inx = listView1.SelectedItems[0].Index;
+            string folder = _folderFoundList[inx];
+          
             if (!Directory.Exists(folder))
             {
                 MessageBox.Show($"Folder not found. [{folder}]", "App ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -109,13 +124,22 @@ namespace MusicManager
 
         private void buttonProgArchives_Click(object sender, EventArgs e)
         {
-            if (listBoxFound.Items.Count == 0)
+            //if (listBoxFound.Items.Count == 0)
+            //    return;
+
+            //if (listBoxFound.SelectedItem == null)
+            //    listBoxFound.SelectedIndex = 0;
+
+            //string folder = _folderFoundList[listBoxFound.SelectedIndex];
+
+            if (listView1.Items.Count == 0)
                 return;
 
-            if (listBoxFound.SelectedItem == null)
-                listBoxFound.SelectedIndex = 0;
+            if (listView1.SelectedItems.Count == 0)
+                listView1.Items[0].Selected = true;
 
-            string folder = _folderFoundList[listBoxFound.SelectedIndex];
+            int inx = listView1.SelectedItems[0].Index;
+            string folder = _folderFoundList[inx];
 
             string FolderName = Path.GetFileName(folder);
            
@@ -150,11 +174,23 @@ namespace MusicManager
 
         private void buttonShowTree_Click(object sender, EventArgs e)
         {
-            if (listBoxFound.Items.Count == 0)
+            //if (listBoxFound.Items.Count == 0)
+            //    return;
+
+            //if (listBoxFound.SelectedItem == null)
+            //    listBoxFound.SelectedIndex = 0;
+
+            //string folder = listBoxFound.SelectedIndex];
+
+            if (listView1.Items.Count == 0)
                 return;
 
-            if (listBoxFound.SelectedItem == null)
-                listBoxFound.SelectedIndex = 0;
+            if (listView1.SelectedItems.Count == 0)
+                listView1.Items[0].Selected = true;
+
+            int inx = listView1.SelectedItems[0].Index;
+            string folder = _folderFoundList[inx];
+
 
 
             //Process[] pname = Process.GetProcessesByName("notepad");
@@ -169,9 +205,9 @@ namespace MusicManager
                 return;
             }
 
-            string folder = "\"" + _folderFoundList[listBoxFound.SelectedIndex] + "\"";
+            string folderSO = "\"" + folder + "\"";
 
-            Process.Start(_musicPlayerApplication, folder);
+            Process.Start(_musicPlayerApplication, folderSO);
         }
 
         #endregion
@@ -256,10 +292,17 @@ namespace MusicManager
 
                 if (e.UserState.GetType() == typeof(WorkerProcessState))
                 {
-                    // Não devem ser usados directamente os conteudos que estão nos componentes ou em fields da classe
-                    // deve receber object class com toda a info necessaria no "e.UserState".
+                    // Por este evento ser chamado por outra Thread deve receber toda os dados em object no "e.UserState".
                     WorkerProcessState WorkerProcessState = e.UserState as WorkerProcessState;
-                    listBoxFound.Items.Add(WorkerProcessState.CollectionName + " : " + WorkerProcessState.Artist);
+
+                    //listBoxFound.Items.Add(WorkerProcessState.CollectionName + " : " + WorkerProcessState.Artist);
+
+                    var viewItem = new ListViewItem(WorkerProcessState.CollectionName);
+                    viewItem.SubItems.Add(WorkerProcessState.Artist);
+                    viewItem.SubItems.Add(WorkerProcessState.LastDate);
+                    //viewItem.Tag = WorkerProcessState.Folder;
+                    listView1.Items.Add(viewItem);
+
                     _folderFoundList.Add(WorkerProcessState.Folder);
                 }
             }
@@ -373,9 +416,11 @@ namespace MusicManager
 
                     if (addItem)
                     {
-                        // Não devem ser usados directamente os conteudos que estão nos componentes ou em fields da classe
-                        // ReportProgress deve receber object com toda a info necessaria no segundo parametro.
-                        workerProcessState = new WorkerProcessState(collectionName, shortName, folderName);
+                        string lastDate = Directory.GetLastWriteTime(folderName).ToString("yyyy-MM-dd");
+
+                        // Porque estamos noutra Thread NÃO devem ser usados directamente os conteudos que estão nos componentes ou em fields da classe
+                        // Usar o evento "ReportProgress" passando object com toda a info necessaria no segundo parametro.
+                        workerProcessState = new WorkerProcessState(collectionName, shortName, lastDate, folderName);
                     }
                 }
 
@@ -422,17 +467,21 @@ namespace MusicManager
             textBoxArtist.Enabled = enabled;
             buttonSearch.Enabled = enabled;
             if (buttonProgArchives.Visible)
-                buttonProgArchives.Enabled = enabled && (listBoxFound.Items.Count > 0);
+                buttonProgArchives.Enabled = enabled && (listView1.Items.Count > 0);
+                //buttonProgArchives.Enabled = enabled && (listBoxFound.Items.Count > 0);
             if (buttonShowTree.Visible)
-                buttonShowTree.Enabled = enabled && (listBoxFound.Items.Count > 0);
+                buttonShowTree.Enabled = enabled && (listView1.Items.Count > 0);
+                //buttonShowTree.Enabled = enabled && (listBoxFound.Items.Count > 0);
             buttonCancel.Enabled = !enabled;
-            listBoxFound.Enabled = enabled && (listBoxFound.Items.Count > 0); 
+            listView1.Enabled = enabled && (listView1.Items.Count > 0);
+            //listBoxFound.Enabled = enabled && (listBoxFound.Items.Count > 0);
             comboBoxSearchType.Enabled = enabled;
             progressBar1.Visible = !enabled;
 
             if (!enabled)
             {
-                listBoxFound.Items.Clear();
+                //listBoxFound.Items.Clear();
+                listView1.Items.Clear(); 
                 _folderFoundList.Clear();
                 progressBar1.Style = ProgressBarStyle.Blocks;
             }
@@ -444,13 +493,33 @@ namespace MusicManager
         private void SearchTypeMessage(int val)
         {
             if (val == 0)
-                this.labelSearchType.Text = "Search only in First Letter Folders. (Low-cost)";
+                this.labelSearchType.Text = "Search based in First Letter Folders. (Low-cost, more speed)";
             else
-                this.labelSearchType.Text = "Search in ALL Collection folders.  (High-cost)";
+                this.labelSearchType.Text = "Search in ALL Collection folders.  (High-cost, low speed)";
         }
 
         #endregion
 
+        private void listView1_DoubleClick(object sender, EventArgs e)
+        {
+            if (listView1.SelectedItems.Count == 0)
+                return;
+
+            int inx  = listView1.SelectedItems[0].Index;
+            string folder = _folderFoundList[inx];
+            if (!Directory.Exists(folder))
+            {
+                MessageBox.Show($"Folder not found. [{folder}]", "App ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            string folderQuotes = $"\"{folder}\"";
+
+            Process.Start("explorer.exe", folderQuotes);
+
+        }
+
+ 
     }
 }
 

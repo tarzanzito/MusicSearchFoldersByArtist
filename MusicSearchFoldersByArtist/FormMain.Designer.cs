@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormMain));
             this.label1 = new System.Windows.Forms.Label();
             this.textBoxArtist = new System.Windows.Forms.TextBox();
@@ -40,11 +41,15 @@
             this.label2 = new System.Windows.Forms.Label();
             this.buttonProgArchives = new System.Windows.Forms.Button();
             this.labelSearchType = new System.Windows.Forms.Label();
-            this.buttonShowTree = new System.Windows.Forms.Button();
+            this.buttonOpenTree = new System.Windows.Forms.Button();
             this.listView1 = new System.Windows.Forms.ListView();
             this.columnHeader0 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader3 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.toolStripMenuItemTree = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItemExplorer = new System.Windows.Forms.ToolStripMenuItem();
+            this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // label1
@@ -163,15 +168,15 @@
             this.labelSearchType.TabIndex = 11;
             this.labelSearchType.Text = "Search type";
             // 
-            // buttonShowTree
+            // buttonOpenTree
             // 
-            this.buttonShowTree.Location = new System.Drawing.Point(486, 142);
-            this.buttonShowTree.Name = "buttonShowTree";
-            this.buttonShowTree.Size = new System.Drawing.Size(56, 47);
-            this.buttonShowTree.TabIndex = 12;
-            this.buttonShowTree.Text = "Show Tree";
-            this.buttonShowTree.UseVisualStyleBackColor = true;
-            this.buttonShowTree.Click += new System.EventHandler(this.buttonShowTree_Click);
+            this.buttonOpenTree.Location = new System.Drawing.Point(486, 142);
+            this.buttonOpenTree.Name = "buttonOpenTree";
+            this.buttonOpenTree.Size = new System.Drawing.Size(56, 47);
+            this.buttonOpenTree.TabIndex = 12;
+            this.buttonOpenTree.Text = "Open Tree";
+            this.buttonOpenTree.UseVisualStyleBackColor = true;
+            this.buttonOpenTree.Click += new System.EventHandler(this.buttonOpenTree_Click);
             // 
             // listView1
             // 
@@ -190,6 +195,7 @@
             this.listView1.UseCompatibleStateImageBehavior = false;
             this.listView1.View = System.Windows.Forms.View.Details;
             this.listView1.DoubleClick += new System.EventHandler(this.listView1_DoubleClick);
+            this.listView1.MouseClick += new System.Windows.Forms.MouseEventHandler(this.listView1_MouseClick);
             // 
             // columnHeader0
             // 
@@ -207,6 +213,28 @@
             this.columnHeader3.Text = "Last Update";
             this.columnHeader3.Width = 70;
             // 
+            // contextMenuStrip1
+            // 
+            this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.toolStripMenuItemTree,
+            this.toolStripMenuItemExplorer});
+            this.contextMenuStrip1.Name = "contextMenuStrip1";
+            this.contextMenuStrip1.Size = new System.Drawing.Size(150, 48);
+            // 
+            // toolStripMenuItemTree
+            // 
+            this.toolStripMenuItemTree.Name = "toolStripMenuItemTree";
+            this.toolStripMenuItemTree.Size = new System.Drawing.Size(149, 22);
+            this.toolStripMenuItemTree.Text = "Open Tree";
+            this.toolStripMenuItemTree.Click += new System.EventHandler(this.toolStripMenuItemTree_Click);
+            // 
+            // toolStripMenuItemExplorer
+            // 
+            this.toolStripMenuItemExplorer.Name = "toolStripMenuItemExplorer";
+            this.toolStripMenuItemExplorer.Size = new System.Drawing.Size(149, 22);
+            this.toolStripMenuItemExplorer.Text = "Open Explorer";
+            this.toolStripMenuItemExplorer.Click += new System.EventHandler(this.toolStripMenuItemExplorer_Click);
+            // 
             // FormMain
             // 
             this.AcceptButton = this.buttonSearch;
@@ -215,7 +243,7 @@
             this.CancelButton = this.buttonClose;
             this.ClientSize = new System.Drawing.Size(552, 251);
             this.Controls.Add(this.listView1);
-            this.Controls.Add(this.buttonShowTree);
+            this.Controls.Add(this.buttonOpenTree);
             this.Controls.Add(this.labelSearchType);
             this.Controls.Add(this.buttonProgArchives);
             this.Controls.Add(this.label2);
@@ -233,6 +261,7 @@
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Search folders by \'Artist\'";
             this.Load += new System.EventHandler(this.FormMain_Load);
+            this.contextMenuStrip1.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -251,11 +280,14 @@
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Button buttonProgArchives;
         private System.Windows.Forms.Label labelSearchType;
-        private System.Windows.Forms.Button buttonShowTree;
+        private System.Windows.Forms.Button buttonOpenTree;
         private System.Windows.Forms.ListView listView1;
         private System.Windows.Forms.ColumnHeader columnHeader1;
         private System.Windows.Forms.ColumnHeader columnHeader3;
         private System.Windows.Forms.ColumnHeader columnHeader0;
+        private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemTree;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItemExplorer;
     }
 }
 

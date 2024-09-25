@@ -33,75 +33,64 @@ namespace MusicManager
 
         #endregion
 
-        #region UI Events
+        #region Private Methods
 
-        private void FormMain_Load(object sender, EventArgs e)
+        private void ChangeFormStatus(bool enabled)
         {
-            this.Text = $"{this.Text} - Version: {System.Windows.Forms.Application.ProductVersion}";
-
-            buttonProgArchives.Visible = (_progArchives != null);
-            buttonShowTree.Visible = (_musicPlayerApplication != null);
-
-            comboBoxSearchType.SelectedIndex = 0;
-            
-            SearchTypeMessage(comboBoxSearchType.SelectedIndex);
-
-            ChangeFormStatus(true);
-        }
-
-        private void buttonSearch_Click(object sender, EventArgs e)
-        {
-            textBoxArtist.Text = textBoxArtist.Text.Trim();
-
-            ChangeFormStatus(false);
-
-            try
+            if (enabled)
             {
-                if (backgroundWorker1.IsBusy == true)
-                    return;
-
-                // set arguments to worker
-                // Não devem ser usados directamente os conteudos que estão nos componentes UI dentro do RunWorkerAsync
-                // deve receber object class com toda a info necessaria como arguments.
-                Utils.SearchType searchType = (Utils.SearchType)comboBoxSearchType.SelectedIndex;
-                WorkerArguments arguments = new WorkerArguments(textBoxArtist.Text, searchType);
-
-                backgroundWorker1.RunWorkerAsync(arguments);
+                Cursor = Cursors.Default;
+                buttonCancel.Cursor = Cursors.Default;
+                buttonClose.Cursor = Cursors.Default;
             }
-            catch (Exception ex)
+            else
             {
-                //listBoxFound.Items.Add(ex.Message);
-
-                var viewItem = new ListViewItem("ERR");
-                viewItem.SubItems.Add(ex.Message);
-                viewItem.SubItems.Add("Error");
-                listView1.Items.Add(viewItem);
-
-                ChangeFormStatus(true);
+                Cursor = Cursors.WaitCursor;
+                buttonCancel.Cursor = Cursors.AppStarting;
+                buttonClose.Cursor = Cursors.AppStarting;
             }
+
+            textBoxArtist.Enabled = enabled;
+            buttonSearch.Enabled = enabled;
+            if (buttonProgArchives.Visible)
+                buttonProgArchives.Enabled = enabled && (listView1.Items.Count > 0);
+            //buttonProgArchives.Enabled = enabled && (listBoxFound.Items.Count > 0);
+            if (buttonOpenTree.Visible)
+                buttonOpenTree.Enabled = enabled && (listView1.Items.Count > 0);
+            //buttonShowTree.Enabled = enabled && (listBoxFound.Items.Count > 0);
+            buttonCancel.Enabled = !enabled;
+            listView1.Enabled = enabled && (listView1.Items.Count > 0);
+            //listBoxFound.Enabled = enabled && (listBoxFound.Items.Count > 0);
+            comboBoxSearchType.Enabled = enabled;
+            progressBar1.Visible = !enabled;
+
+            if (!enabled)
+            {
+                //listBoxFound.Items.Clear();
+                listView1.Items.Clear();
+                _folderFoundList.Clear();
+                progressBar1.Style = ProgressBarStyle.Blocks;
+            }
+            progressBar1.Value = 0;
+
+            System.Windows.Forms.Application.DoEvents();
         }
 
-        private void buttonClose_Click(object sender, EventArgs e)
+        private void SearchTypeMessage(int val)
         {
-            backgroundWorker1.CancelAsync();
-            Close();
+            if (val == 0)
+                this.labelSearchType.Text = "Search based in First Letter Folders. (Low-cost, more speed)";
+            else
+                this.labelSearchType.Text = "Search in ALL Collection folders.  (High-cost, low speed)";
         }
 
-        private void listBox1_DoubleClick(object sender, EventArgs e)
+        private void ExplorerOpen()
         {
-            //if (listBoxFound.SelectedItem == null)
-            //    listBoxFound.SelectedIndex = 0;
-            //string folder = _folderFoundList[listBoxFound.SelectedIndex];
-
-            if (listView1.Items.Count == 0)
-                return;
-
             if (listView1.SelectedItems.Count == 0)
-                listView1.Items[0].Selected = true;
+                return;
 
             int inx = listView1.SelectedItems[0].Index;
             string folder = _folderFoundList[inx];
-          
             if (!Directory.Exists(folder))
             {
                 MessageBox.Show($"Folder not found. [{folder}]", "App ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -113,66 +102,7 @@ namespace MusicManager
             Process.Start("explorer.exe", folderQuotes);
         }
 
-        private void buttonCancel_Click(object sender, EventArgs e)
-        {
-            if (backgroundWorker1.IsBusy)
-            {
-                if (backgroundWorker1.WorkerSupportsCancellation)
-                    backgroundWorker1.CancelAsync();
-            }
-        }
-
-        private void buttonProgArchives_Click(object sender, EventArgs e)
-        {
-            //if (listBoxFound.Items.Count == 0)
-            //    return;
-
-            //if (listBoxFound.SelectedItem == null)
-            //    listBoxFound.SelectedIndex = 0;
-
-            //string folder = _folderFoundList[listBoxFound.SelectedIndex];
-
-            if (listView1.Items.Count == 0)
-                return;
-
-            if (listView1.SelectedItems.Count == 0)
-                listView1.Items[0].Selected = true;
-
-            int inx = listView1.SelectedItems[0].Index;
-            string folder = _folderFoundList[inx];
-
-            string FolderName = Path.GetFileName(folder);
-           
-            string[] words = FolderName.Split('{');
-
-            string artist = "";
-            string country = "";
-
-            if (words.Length > 0)
-                artist = "'" + words[0].Trim() + "'";
-            
-            if (words.Length > 1)
-                country = "'" + words[1].Replace("}", "").Trim() + "'";
-
-            string filter = artist; // + " " + country; ////o filter stays only with 'artist'. ignore the 'country'
-
-            string cleanfilter = filter.Replace(" ", "%20"); //url without spaces
-            string finalFilter = DiacriticsUtil.RemoveDiacritics(cleanfilter, DiacriticsUtil.TextCaseAction.ToUpper);
-
-            Process.Start(_progArchives + finalFilter);
-        }
-
-        private void textBoxArtist_TextChanged(object sender, EventArgs e)
-        {
-            SearchTypeMessage(comboBoxSearchType.SelectedIndex);
-        }
-
-        private void comboBoxSearchType_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            SearchTypeMessage(comboBoxSearchType.SelectedIndex);
-        }
-
-        private void buttonShowTree_Click(object sender, EventArgs e)
+        private void TreeViewOpen()
         {
             //if (listBoxFound.Items.Count == 0)
             //    return;
@@ -447,66 +377,75 @@ namespace MusicManager
 
         #endregion
 
-        #region Private Methods
+        #region UI Events
 
-        private void ChangeFormStatus(bool enabled)
+        private void FormMain_Load(object sender, EventArgs e)
         {
-            if (enabled)
-            {
-                Cursor = Cursors.Default;
-                buttonCancel.Cursor = Cursors.Default;
-                buttonClose.Cursor = Cursors.Default;
-            }
-            else
-            {
-                Cursor = Cursors.WaitCursor;
-                buttonCancel.Cursor = Cursors.AppStarting;
-                buttonClose.Cursor = Cursors.AppStarting;
-            }
+            this.Text = $"{this.Text} - Version: {System.Windows.Forms.Application.ProductVersion}";
 
-            textBoxArtist.Enabled = enabled;
-            buttonSearch.Enabled = enabled;
-            if (buttonProgArchives.Visible)
-                buttonProgArchives.Enabled = enabled && (listView1.Items.Count > 0);
-                //buttonProgArchives.Enabled = enabled && (listBoxFound.Items.Count > 0);
-            if (buttonShowTree.Visible)
-                buttonShowTree.Enabled = enabled && (listView1.Items.Count > 0);
-                //buttonShowTree.Enabled = enabled && (listBoxFound.Items.Count > 0);
-            buttonCancel.Enabled = !enabled;
-            listView1.Enabled = enabled && (listView1.Items.Count > 0);
-            //listBoxFound.Enabled = enabled && (listBoxFound.Items.Count > 0);
-            comboBoxSearchType.Enabled = enabled;
-            progressBar1.Visible = !enabled;
+            buttonProgArchives.Visible = (_progArchives != null);
+            buttonOpenTree.Visible = (_musicPlayerApplication != null);
 
-            if (!enabled)
-            {
-                //listBoxFound.Items.Clear();
-                listView1.Items.Clear(); 
-                _folderFoundList.Clear();
-                progressBar1.Style = ProgressBarStyle.Blocks;
-            }
-            progressBar1.Value = 0;
+            comboBoxSearchType.SelectedIndex = 0;
 
-            System.Windows.Forms.Application.DoEvents();
+            SearchTypeMessage(comboBoxSearchType.SelectedIndex);
+
+            ChangeFormStatus(true);
         }
 
-        private void SearchTypeMessage(int val)
+        private void buttonSearch_Click(object sender, EventArgs e)
         {
-            if (val == 0)
-                this.labelSearchType.Text = "Search based in First Letter Folders. (Low-cost, more speed)";
-            else
-                this.labelSearchType.Text = "Search in ALL Collection folders.  (High-cost, low speed)";
+            textBoxArtist.Text = textBoxArtist.Text.Trim();
+
+            ChangeFormStatus(false);
+
+            try
+            {
+                if (backgroundWorker1.IsBusy == true)
+                    return;
+
+                // set arguments to worker
+                // Não devem ser usados directamente os conteudos que estão nos componentes UI dentro do RunWorkerAsync
+                // deve receber object class com toda a info necessaria como arguments.
+                Utils.SearchType searchType = (Utils.SearchType)comboBoxSearchType.SelectedIndex;
+                WorkerArguments arguments = new WorkerArguments(textBoxArtist.Text, searchType);
+
+                backgroundWorker1.RunWorkerAsync(arguments);
+            }
+            catch (Exception ex)
+            {
+                //listBoxFound.Items.Add(ex.Message);
+
+                var viewItem = new ListViewItem("ERR");
+                viewItem.SubItems.Add(ex.Message);
+                viewItem.SubItems.Add("Error");
+                listView1.Items.Add(viewItem);
+
+                ChangeFormStatus(true);
+            }
         }
 
-        #endregion
-
-        private void listView1_DoubleClick(object sender, EventArgs e)
+        private void buttonClose_Click(object sender, EventArgs e)
         {
-            if (listView1.SelectedItems.Count == 0)
+            backgroundWorker1.CancelAsync();
+            Close();
+        }
+
+        private void listBox1_DoubleClick(object sender, EventArgs e)
+        {
+            //if (listBoxFound.SelectedItem == null)
+            //    listBoxFound.SelectedIndex = 0;
+            //string folder = _folderFoundList[listBoxFound.SelectedIndex];
+
+            if (listView1.Items.Count == 0)
                 return;
 
-            int inx  = listView1.SelectedItems[0].Index;
+            if (listView1.SelectedItems.Count == 0)
+                listView1.Items[0].Selected = true;
+
+            int inx = listView1.SelectedItems[0].Index;
             string folder = _folderFoundList[inx];
+
             if (!Directory.Exists(folder))
             {
                 MessageBox.Show($"Folder not found. [{folder}]", "App ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -516,10 +455,101 @@ namespace MusicManager
             string folderQuotes = $"\"{folder}\"";
 
             Process.Start("explorer.exe", folderQuotes);
-
         }
 
- 
+        private void buttonCancel_Click(object sender, EventArgs e)
+        {
+            if (backgroundWorker1.IsBusy)
+            {
+                if (backgroundWorker1.WorkerSupportsCancellation)
+                    backgroundWorker1.CancelAsync();
+            }
+        }
+
+        private void buttonProgArchives_Click(object sender, EventArgs e)
+        {
+            //if (listBoxFound.Items.Count == 0)
+            //    return;
+
+            //if (listBoxFound.SelectedItem == null)
+            //    listBoxFound.SelectedIndex = 0;
+
+            //string folder = _folderFoundList[listBoxFound.SelectedIndex];
+
+            if (listView1.Items.Count == 0)
+                return;
+
+            if (listView1.SelectedItems.Count == 0)
+                listView1.Items[0].Selected = true;
+
+            int inx = listView1.SelectedItems[0].Index;
+            string folder = _folderFoundList[inx];
+
+            string FolderName = Path.GetFileName(folder);
+
+            string[] words = FolderName.Split('{');
+
+            string artist = "";
+            string country = "";
+
+            if (words.Length > 0)
+                artist = "'" + words[0].Trim() + "'";
+
+            if (words.Length > 1)
+                country = "'" + words[1].Replace("}", "").Trim() + "'";
+
+            string filter = artist; // + " " + country; ////o filter stays only with 'artist'. ignore the 'country'
+
+            string cleanfilter = filter.Replace(" ", "%20"); //url without spaces
+            string finalFilter = DiacriticsUtil.RemoveDiacritics(cleanfilter, DiacriticsUtil.TextCaseAction.ToUpper);
+
+            Process.Start(_progArchives + finalFilter);
+        }
+
+        private void textBoxArtist_TextChanged(object sender, EventArgs e)
+        {
+            SearchTypeMessage(comboBoxSearchType.SelectedIndex);
+        }
+
+        private void comboBoxSearchType_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            SearchTypeMessage(comboBoxSearchType.SelectedIndex);
+        }
+
+        private void buttonOpenTree_Click(object sender, EventArgs e)
+        {
+            TreeViewOpen();
+        }
+
+        private void listView1_DoubleClick(object sender, EventArgs e)
+        {
+            ExplorerOpen();
+        }
+
+        private void listView1_MouseClick(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+            {
+                ListViewItem focusedItem = listView1.FocusedItem;
+                if (focusedItem != null && focusedItem.Bounds.Contains(e.Location))
+                {
+                    contextMenuStrip1.Show(Cursor.Position);
+                }
+            }
+        }
+
+        private void toolStripMenuItemTree_Click(object sender, EventArgs e)
+        {
+            TreeViewOpen();
+        }
+
+        private void toolStripMenuItemExplorer_Click(object sender, EventArgs e)
+        {
+            ExplorerOpen();
+        }
+
+        #endregion
+
     }
 }
 
